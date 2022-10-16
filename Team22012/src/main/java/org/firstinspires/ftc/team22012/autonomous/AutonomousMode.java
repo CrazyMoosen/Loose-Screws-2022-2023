@@ -1,4 +1,4 @@
-package org.firstinspires.ftc.teamcode.autonomous;
+package org.firstinspires.ftc.team22012.autonomous;
 
 import com.arcrobotics.ftclib.drivebase.MecanumDrive;
 import com.arcrobotics.ftclib.hardware.motors.Motor;
@@ -7,8 +7,8 @@ import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
-import org.firstinspires.ftc.teamcode.universal.subsystems.ArmSubsystem;
-import org.firstinspires.ftc.teamcode.universal.subsystems.ClawSubsystem;
+import org.firstinspires.ftc.team22012.universal.subsystems.ArmSubsystem;
+import org.firstinspires.ftc.team22012.universal.subsystems.ClawSubsystem;
 
 /**
     Will use later on; currently disabled, the @Disabled will be commented out during usage.

@@ -1,8 +1,8 @@
-package org.firstinspires.ftc.teamcode.universal.commands;
+package org.firstinspires.ftc.team22012.universal.commands;
 
 import com.arcrobotics.ftclib.command.CommandBase;
 
-import org.firstinspires.ftc.teamcode.universal.subsystems.ClawSubsystem;
+import org.firstinspires.ftc.team22012.universal.subsystems.ClawSubsystem;
 
 import java.util.function.DoubleSupplier;
 

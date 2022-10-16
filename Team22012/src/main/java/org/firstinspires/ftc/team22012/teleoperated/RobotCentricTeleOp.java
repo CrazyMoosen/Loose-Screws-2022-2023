@@ -1,19 +1,29 @@
-package org.firstinspires.ftc.teamcode.teleoperated;
+package org.firstinspires.ftc.team22012.teleoperated;
 
 import com.arcrobotics.ftclib.drivebase.MecanumDrive;
 import com.arcrobotics.ftclib.gamepad.GamepadEx;
 import com.arcrobotics.ftclib.hardware.motors.Motor;
-import com.qualcomm.hardware.bosch.BNO055IMU;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
-@TeleOp(name = "FieldCentric", group = "Drive Modes")
-public class FieldCentricTeleOp extends OpMode {
+import org.firstinspires.ftc.team22012.universal.subsystems.ArmSubsystem;
+import org.firstinspires.ftc.team22012.universal.subsystems.ClawSubsystem;
+
+@TeleOp(name="RobotCentric", group = "Drive Modes")
+public class RobotCentricTeleOp extends OpMode {
 
     private Motor fL, fR, bL, bR;
-    private BNO055IMU imu;
     private MecanumDrive mecanumDrive;
     private GamepadEx shreyController;
+    //private GamepadEx monishController;
+
+    /**
+     * This is for the arm and the claw management, once we build the claw
+     * and finalize the {@link ClawSubsystem} and {@link ArmSubsystem} hardware
+     * classes.
+     */
+    //private ArmSubsystem arm;
+    //private ClawSubsystem claw;
 
     @Override
     public void init() {
@@ -22,23 +32,22 @@ public class FieldCentricTeleOp extends OpMode {
         bL = new Motor(hardwareMap, "bL", Motor.GoBILDA.RPM_312);
         bR = new Motor(hardwareMap, "bR", Motor.GoBILDA.RPM_312);
 
-        imu = hardwareMap.get(BNO055IMU.class, "imu");
-        BNO055IMU.Parameters parameters = new BNO055IMU.Parameters();
-        parameters.angleUnit = BNO055IMU.AngleUnit.RADIANS;
-        imu.initialize(parameters);
-
         mecanumDrive = new MecanumDrive(fL, fR, bL, bR);
+
         shreyController = new GamepadEx(gamepad1);
+        //monishController = new GamepadEx(gamepad2);
+
+        //claw = new ClawSubsystem(hardwareMap);
+        //arm = new ArmSubsystem(hardwareMap);
     }
 
     @Override
     public void loop() {
-        double heading = -imu.getAngularOrientation().firstAngle;
-        mecanumDrive.driveFieldCentric(
+        mecanumDrive.driveRobotCentric(
                 shreyController.getLeftX(),
                 shreyController.getLeftY(),
-                shreyController.getRightX(),
-                heading
+                shreyController.getRightX()
         );
+        //claw.close(monishController.getRightX());
     }
 }
