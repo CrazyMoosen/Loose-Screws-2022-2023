@@ -7,6 +7,7 @@ public class ClawSubsystem extends SubsystemBase {
 
     HardwareMap hardwareMap;
 
+    //initialize claw
     public ClawSubsystem(final HardwareMap hardwareMap) {
 
     }
