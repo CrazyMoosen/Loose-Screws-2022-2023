@@ -31,19 +31,65 @@ public class AutonomousMode extends LinearOpMode {
         bL = new Motor(hardwareMap, "bL", Motor.GoBILDA.RPM_312);
         bR = new Motor(hardwareMap, "bR", Motor.GoBILDA.RPM_312);
 
+        // Setting up the movement type
+        fL.setRunMode(Motor.RunMode.PositionControl);
+        fR.setRunMode(Motor.RunMode.PositionControl);
+        bL.setRunMode(Motor.RunMode.PositionControl);
+        bR.setRunMode(Motor.RunMode.PositionControl);
+
+        // Setting the position coefficients, which is the distance traveled per count per revolution
+        // Will have to be determined experimentally
+        fL.setDistancePerPulse(0.015);
+        fR.setDistancePerPulse(0.015);
+        bL.setDistancePerPulse(0.015);
+        bR.setDistancePerPulse(0.015);
+
         mecanumDrive = new MecanumDrive(fL, fR, bL, bR);
         arm = new ArmSubsystem(hardwareMap);
         claw = new ClawSubsystem(hardwareMap);
 
         waitForStart();
+        moveForwardDistance(0.8, 18);
+        moveBackwardDistance(0.8, 18);
+        moveForwardDistancev2(0.8, 18);
+        moveBackwardDistancev2(0.8, 18);
+    }
 
-        while (opModeIsActive()) {
-            runTime = new ElapsedTime(0);
-            runTime.startTime();
-            //Does whatever it does in autonomous mode
-            if (runTime.seconds() < 5) {
-                mecanumDrive.driveRobotCentric(0, 1.0, 0);
-            }
+    public void moveForwardDistance(double power, double distance){
+        // Idk what the units are yet lmaoo
+        fL.setTargetDistance(distance);
+        bL.setTargetDistance(distance);
+        fR.setTargetDistance(distance);
+        bR.setTargetDistance(distance);
+
+        fL.set(power);
+        fR.set(power);
+        bL.set(power);
+        bR.set(power);
+    }
+
+    public void moveForwardDistancev2(double power, double distance){
+        while (bL.getCurrentPosition() < distance) {
+            mecanumDrive.driveWithMotorPowers(power, power, power, power);
+        }
+    }
+
+    public void moveBackwardDistance(double power, double distance){
+        // Idk what the units are yet lmaoo
+        fL.setTargetDistance(distance);
+        bL.setTargetDistance(distance);
+        fR.setTargetDistance(distance);
+        bR.setTargetDistance(distance);
+
+        fL.set(-power);
+        fR.set(-power);
+        bL.set(-power);
+        bR.set(-power);
+    }
+
+    public void moveBackwardDistancev2(double power, double distance){
+        while (bL.getCurrentPosition() < distance) {
+            mecanumDrive.driveWithMotorPowers(-power, -power, -power, -power);
         }
     }
 }
