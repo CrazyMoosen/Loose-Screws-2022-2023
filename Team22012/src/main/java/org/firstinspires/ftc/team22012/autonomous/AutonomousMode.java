@@ -1,14 +1,17 @@
 package org.firstinspires.ftc.team22012.autonomous;
 
+import static java.lang.Math.cos;
+import static java.lang.Math.sin;
+
 import com.arcrobotics.ftclib.drivebase.MecanumDrive;
 import com.arcrobotics.ftclib.hardware.motors.Motor;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
-import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.team22012.universal.subsystems.ArmSubsystem;
 import org.firstinspires.ftc.team22012.universal.subsystems.ClawSubsystem;
+import  java.lang.Math;
 
 /**
     Will use later on; currently disabled, the @Disabled will be commented out during usage.
@@ -21,6 +24,11 @@ public class AutonomousMode extends LinearOpMode {
     private ArmSubsystem arm;
     private ClawSubsystem claw;
     private MecanumDrive mecanumDrive;
+
+    // Position tracking
+    double movementForward;
+    double movementLeft;
+    double bearing;
 
     private ElapsedTime runTime;
 
@@ -49,13 +57,29 @@ public class AutonomousMode extends LinearOpMode {
         claw = new ClawSubsystem(hardwareMap);
 
         waitForStart();
-        moveForwardDistance(0.8, 18);
-        moveBackwardDistance(0.8, 18);
-        moveForwardDistancev2(0.8, 18);
-        moveBackwardDistancev2(0.8, 18);
+        // Just some test code
+        moveForward(0.8, 18);
+        telemetry.addData("Position Forward", movementForward);
+        telemetry.addData("Position Left", movementLeft);
+        telemetry.addData("Angle", bearing);
+        moveBackward(0.8, 18);
+        moveForwardv2(0.8, 18);
+        telemetry.addData("Position Forward", movementForward);
+        telemetry.addData("Position Left", movementLeft);
+        telemetry.addData("Angle", bearing);
+        moveBackwardv2(0.8, 18);
+        moveLeft(0.8, 18);
+        telemetry.addData("Position Forward", movementForward);
+        telemetry.addData("Position Left", movementLeft);
+        telemetry.addData("Angle", bearing);
+        moveRight(0.8, 18);
+        turnLeft(0.8, 90);
+        telemetry.addData("Position Forward", movementForward);
+        telemetry.addData("Position Left", movementLeft);
+        telemetry.addData("Angle", bearing);
     }
 
-    public void moveForwardDistance(double power, double distance){
+    public void moveForward(double power, double distance){
         // Idk what the units are yet lmaoo
         fL.setTargetDistance(distance);
         bL.setTargetDistance(distance);
@@ -66,15 +90,22 @@ public class AutonomousMode extends LinearOpMode {
         fR.set(power);
         bL.set(power);
         bR.set(power);
+
+        movementForward += fR.getDistance() * cos(bearing);
+        movementLeft += fR.getDistance() * sin(bearing);
     }
 
-    public void moveForwardDistancev2(double power, double distance){
+    public void moveForwardv2(double power, double distance){
         while (bL.getCurrentPosition() < distance) {
             mecanumDrive.driveWithMotorPowers(power, power, power, power);
         }
+        movementForward += fR.getDistance();
+
+        movementForward += fR.getDistance() * cos(bearing);
+        movementLeft += fR.getDistance() * sin(bearing);
     }
 
-    public void moveBackwardDistance(double power, double distance){
+    public void moveBackward(double power, double distance){
         // Idk what the units are yet lmaoo
         fL.setTargetDistance(distance);
         bL.setTargetDistance(distance);
@@ -85,11 +116,75 @@ public class AutonomousMode extends LinearOpMode {
         fR.set(-power);
         bL.set(-power);
         bR.set(-power);
+        movementForward -= fR.getDistance();
+
+        movementForward -= fR.getDistance() * cos(bearing);
+        movementLeft -= fR.getDistance() * sin(bearing);
     }
 
-    public void moveBackwardDistancev2(double power, double distance){
+    public void moveBackwardv2(double power, double distance) {
         while (bL.getCurrentPosition() < distance) {
             mecanumDrive.driveWithMotorPowers(-power, -power, -power, -power);
         }
+        movementForward -= fR.getDistance();
+
+        movementForward -= fR.getDistance() * cos(bearing);
+        movementLeft -= fR.getDistance() * sin(bearing);
+    }
+
+    public void moveLeft(double power, double distance){
+        // Idk what the units are yet lmaoo
+        fL.setTargetDistance(distance);
+        bL.setTargetDistance(distance);
+        fR.setTargetDistance(distance);
+        bR.setTargetDistance(distance);
+
+        fL.set(-power);
+        fR.set(power);
+        bL.set(power);
+        bR.set(-power);
+        movementLeft += fR.getDistance();
+
+        movementForward += fR.getDistance() * sin(bearing);
+        movementLeft += fR.getDistance() * cos(bearing);
+    }
+
+    public void moveRight(double power, double distance){
+        // Idk what the units are yet lmaoo
+        fL.setTargetDistance(distance);
+        bL.setTargetDistance(distance);
+        fR.setTargetDistance(distance);
+        bR.setTargetDistance(distance);
+
+        fL.set(power);
+        fR.set(-power);
+        bL.set(-power);
+        bR.set(power);
+        movementLeft -= fR.getDistance();
+
+        movementForward -= fR.getDistance() * sin(bearing);
+        movementLeft -= fR.getDistance() * cos(bearing);
+    }
+
+    public void turnLeft(double power, double angle){
+        // I measured the robot as a rectangle @ 36cm and 10.5cm
+        // R = sqrt(18 ** 2 + 5.25 ** 2) = 18.75
+        // distance / R = angle in radians
+        // distance / R = pi / 180 deg
+        // distance = pi / 180 * deg * R
+        // Idk what the units are yet lmaoo
+        final double R = 18.75;
+        double distance = Math.PI / 180 * angle * R;
+        fL.setTargetDistance(distance);
+        bL.setTargetDistance(distance);
+        fR.setTargetDistance(distance);
+        bR.setTargetDistance(distance);
+
+        fL.set(-power);
+        fR.set(power);
+        bL.set(-power);
+        bR.set(power);
+
+        bearing += angle;
     }
 }
