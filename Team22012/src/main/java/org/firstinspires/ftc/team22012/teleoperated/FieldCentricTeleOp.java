@@ -3,6 +3,7 @@ package org.firstinspires.ftc.team22012.teleoperated;
 import com.arcrobotics.ftclib.drivebase.MecanumDrive;
 import com.arcrobotics.ftclib.gamepad.GamepadEx;
 import com.arcrobotics.ftclib.hardware.motors.Motor;
+import com.qualcomm.hardware.bosch.BHI260IMU;
 import com.qualcomm.hardware.bosch.BNO055IMU;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
@@ -27,6 +28,7 @@ public class FieldCentricTeleOp extends OpMode {
         parameters.angleUnit = BNO055IMU.AngleUnit.RADIANS;
         imu.initialize(parameters);
 
+
         mecanumDrive = new MecanumDrive(fL, fR, bL, bR);
         shreyController = new GamepadEx(gamepad1);
     }
@@ -35,6 +37,7 @@ public class FieldCentricTeleOp extends OpMode {
     public void loop() {
         double heading = -imu.getAngularOrientation().firstAngle;
         mecanumDrive.driveFieldCentric(
+                //Joystick inputs range from -1.0D to 1.0D
                 shreyController.getLeftX(),
                 shreyController.getLeftY(),
                 shreyController.getRightX(),

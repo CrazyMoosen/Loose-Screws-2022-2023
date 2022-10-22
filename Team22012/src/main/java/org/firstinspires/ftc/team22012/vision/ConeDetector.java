@@ -59,6 +59,7 @@ public class ConeDetector extends OpenCvPipeline {
         Mat left = matrix.submat(LEFT_ROI);
         Mat right = matrix.submat(RIGHT_ROI);
 
+        //percent blue in the left and right region of interest
         double leftValue = Core.sumElems(left).val[0] / LEFT_ROI.area() / 255;
         double rightValue = Core.sumElems(right).val[0] / RIGHT_ROI.area() / 255;
 

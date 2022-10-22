@@ -43,11 +43,42 @@ public class RobotCentricTeleOp extends OpMode {
 
     @Override
     public void loop() {
+        double distance = fL.getDistance();
+        double leftX = shreyController.getLeftX();
+        double rightX = shreyController.getRightX();
+        double leftY = shreyController.getLeftY();
+
+        if (leftX > 0) {
+            leftX = Math.pow(leftX, 2);
+        }
+        else {
+            leftX = -1 * Math.pow(leftX, 2);
+        }
+
+        if (rightX > 0) {
+            rightX = Math.pow(rightX, 2);
+        }
+        else {
+            rightX = -1 * Math.pow(rightX, 2);
+        }
+
+        if (leftY > 0) {
+            leftY = Math.pow(leftY, 2);
+        }
+        else {
+            leftY = -1 * Math.pow(leftY, 2);
+        }
+
+
+        //if (shreyController.getLeftX() > 0D)
         mecanumDrive.driveRobotCentric(
-                shreyController.getLeftX(),
-                shreyController.getLeftY(),
-                shreyController.getRightX()
+                -leftX,
+                -leftY,
+                -rightX
         );
+        //claw.close(monishController.getRightX());
+        telemetry.addData("Position:", String.valueOf(distance));
+        telemetry.update();
         //claw.close(monishController.getRightX());
     }
 }
