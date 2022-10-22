@@ -29,6 +29,9 @@ public class AutonomousMode extends LinearOpMode {
     double movementForward;
     double movementLeft;
     double bearing;
+    
+    // Coefficients
+    final double distancePerPulse = 0.015;
 
     private ElapsedTime runTime;
 
@@ -47,10 +50,10 @@ public class AutonomousMode extends LinearOpMode {
 
         // Setting the position coefficients, which is the distance traveled per count per revolution
         // Will have to be determined experimentally
-        fL.setDistancePerPulse(0.015);
-        fR.setDistancePerPulse(0.015);
-        bL.setDistancePerPulse(0.015);
-        bR.setDistancePerPulse(0.015);
+        fL.setDistancePerPulse(distancePerPulse);
+        fR.setDistancePerPulse(distancePerPulse);
+        bL.setDistancePerPulse(distancePerPulse);
+        bR.setDistancePerPulse(distancePerPulse);
 
         mecanumDrive = new MecanumDrive(fL, fR, bL, bR);
         arm = new ArmSubsystem(hardwareMap);
@@ -77,6 +80,7 @@ public class AutonomousMode extends LinearOpMode {
         telemetry.addData("Position Forward", movementForward);
         telemetry.addData("Position Left", movementLeft);
         telemetry.addData("Angle", bearing);
+        telemetry.update();
     }
 
     public void moveForward(double power, double distance){
