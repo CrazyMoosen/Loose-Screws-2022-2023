@@ -81,5 +81,20 @@ public class RobotCentricTeleOp extends OpMode {
         //claw.close(monishController.getRightX());
         telemetry.addData("Position:", String.valueOf(distance));
         telemetry.update();
+        if(monishController.isDown(GamepadKeys.Button.A)){
+            arm.completeRetract();
+        }
+        if(monishController.isDown(GamepadKeys.Button.Y)){
+            arm.completeExtend();
+        }
+        if(!monishController.isDown(GamepadKeys.Button.Y) && !monishController.isDown(GamepadKeys.Button.A)){
+            arm.ArmMove(height);
+        }
+        if (monishController.isDown(GamepadKeys.Button.X)){
+            claw.release();
+        }
+        if (monishController.isDown(GamepadKeys.Button.B)){
+            claw.close(closeValue);
+        }
     }
 }
