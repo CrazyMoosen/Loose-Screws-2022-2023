@@ -13,9 +13,12 @@ import org.firstinspires.ftc.robotcore.external.tfod.TFObjectDetector;
 import org.firstinspires.ftc.team22012.vision.MonishPython;
 import org.firstinspires.ftc.team22012.vision.VuforiaLocalizerImplSubclass;
 import org.opencv.android.Utils;
+import org.opencv.core.Core;
 import org.opencv.core.CvType;
 import org.opencv.core.Mat;
+import org.opencv.core.Scalar;
 import org.opencv.imgcodecs.Imgcodecs;
+import org.opencv.imgproc.Imgproc;
 
 import java.util.List;
 
@@ -104,8 +107,20 @@ public class VuforiaWebcamDetection extends LinearOpMode{
                     Utils.bitmapToMat(bm, img);
 
                     //Pipelines the input frame (has not tested this yet cuz shrika nabbed the control hub
-                    MonishPython pipeline = new MonishPython(telemetry);
-                    Mat threshold = pipeline.processFrame(img);
+                    //MonishPython pipeline = new MonishPython(telemetry);
+                    //Mat threshold = pipeline.processFrame(img);
+
+                    Scalar blue_lower = new Scalar(62, 62, 81);
+                    Scalar blue_upper = new Scalar(179, 255, 255);
+
+                    //input image converts to HSV
+                    Mat hsvPic = new Mat();
+                    Imgproc.cvtColor(img, hsvPic, Imgproc.COLOR_BGR2HSV);
+
+                    //the thresholded frame that is black and white and shows the blue in the picture.
+                    Mat threshold = new Mat();
+                    Core.inRange(hsvPic, blue_lower, blue_upper, threshold);
+
 
                     //thresholded image should be saved here
                     String filePath = "sdcard/FIRST/rgbFile.png";
