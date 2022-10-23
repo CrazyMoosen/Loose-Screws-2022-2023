@@ -24,7 +24,7 @@ import java.util.List;
 
 @Autonomous(name = "Vuforia Webcam Detection")
 public class VuforiaWebcamDetection extends LinearOpMode{
-    /*
+    /**
      * Specify the source for the Tensor Flow Model.
      * If the TensorFlowLite object model is included in the Robot Controller App as an "asset",
      * the OpMode must to load it using loadModelFromAsset().  However, if a team generated model
@@ -39,7 +39,7 @@ public class VuforiaWebcamDetection extends LinearOpMode{
             "2 Bulb",
             "3 Panel"
     };
-    /*
+    /**
      * IMPORTANT: You need to obtain your own license key to use Vuforia. The string below with which
      * 'parameters.vuforiaLicenseKey' is initialized is for illustration only, and will not function.
      * A Vuforia 'Development' license key, can be obtained free of charge from the Vuforia developer
@@ -76,7 +76,7 @@ public class VuforiaWebcamDetection extends LinearOpMode{
         /**
          * Activate TensorFlow Object Detection before we wait for the start command.
          * Do it here so that the Camera Stream window will have the TensorFlow annotations visible.
-         **/
+         */
         if (tfod != null) {
             tfod.activate();
 
@@ -115,7 +115,7 @@ public class VuforiaWebcamDetection extends LinearOpMode{
 
                     //input image converts to HSV
                     Mat hsvPic = new Mat();
-                    Imgproc.cvtColor(img, hsvPic, Imgproc.COLOR_BGR2HSV);
+                    Imgproc.cvtColor(img, hsvPic, Imgproc.COLOR_RGB2HSV);
 
                     //the thresholded frame that is black and white and shows the blue in the picture.
                     Mat threshold = new Mat();
