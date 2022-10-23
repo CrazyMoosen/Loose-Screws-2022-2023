@@ -10,7 +10,6 @@ import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
 import org.firstinspires.ftc.robotcore.external.navigation.VuforiaLocalizer;
 import org.firstinspires.ftc.robotcore.external.tfod.Recognition;
 import org.firstinspires.ftc.robotcore.external.tfod.TFObjectDetector;
-import org.firstinspires.ftc.team22012.vision.MonishPython;
 import org.firstinspires.ftc.team22012.vision.VuforiaLocalizerImplSubclass;
 import org.opencv.android.Utils;
 import org.opencv.core.Core;
@@ -22,8 +21,8 @@ import org.opencv.imgproc.Imgproc;
 
 import java.util.List;
 
-@Autonomous(name = "Vuforia Webcam Detection")
-public class VuforiaWebcamDetection extends LinearOpMode{
+@Autonomous(name = "Vuforia Webcam Detection Red Team")
+public class RedTeamWebcam extends LinearOpMode{
     /**
      * Specify the source for the Tensor Flow Model.
      * If the TensorFlowLite object model is included in the Robot Controller App as an "asset",
@@ -110,16 +109,20 @@ public class VuforiaWebcamDetection extends LinearOpMode{
                     //MonishPython pipeline = new MonishPython(telemetry);
                     //Mat threshold = pipeline.processFrame(img);
 
-                    Scalar blue_lower = new Scalar(62, 62, 81);
-                    Scalar blue_upper = new Scalar(179, 255, 255);
+                    //https://colorpicker.me/ uses H: 0-360, S: 0-100, V: 0-100
+                    //but OpenCV uses H: 0-180, S:0-255, V: 0-255
+                    //values I got (0, 100, 100) and (250, 100, 100)
+                    //but I divided the H by 2 and defined a range:
+                    Scalar red_lower = new Scalar(0, 140, 128);
+                    Scalar red_upper = new Scalar(12, 255, 255);
 
                     //input image converts to HSV
                     Mat hsvPic = new Mat();
-                    Imgproc.cvtColor(img, hsvPic, Imgproc.COLOR_RGB2HSV);
+                    Imgproc.cvtColor(img, hsvPic, Imgproc.COLOR_BGR2HSV);
 
                     //the thresholded frame that is black and white and shows the blue in the picture.
                     Mat threshold = new Mat();
-                    Core.inRange(hsvPic, blue_lower, blue_upper, threshold);
+                    Core.inRange(hsvPic, red_lower, red_upper, threshold);
 
 
                     //thresholded image should be saved here
