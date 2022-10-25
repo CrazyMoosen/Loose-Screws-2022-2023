@@ -114,8 +114,11 @@ public class BlueTeamWebcam extends LinearOpMode{
                     //but OpenCV uses H: 0-180, S:0-255, V: 0-255
                     //values I got (180, 100, 100) and (250, 100, 100)
                     //but I divided the H by 2 and defined a range:
-                    Scalar blue_lower = new Scalar(90, 50, 50);
-                    Scalar blue_upper = new Scalar(125, 255, 255);
+                    //Scalar blue_lower = new Scalar(80, 50, 25);
+                    //Scalar blue_upper = new Scalar(125, 255, 255);
+
+                    Scalar blue_lower = new Scalar(90, 50, 70);
+                    Scalar blue_upper = new Scalar(128, 255, 255);
 
                     //input image converts to HSV
                     Mat hsvPic = new Mat();
@@ -125,9 +128,12 @@ public class BlueTeamWebcam extends LinearOpMode{
                     Mat threshold = new Mat();
                     Core.inRange(hsvPic, blue_lower, blue_upper, threshold);
 
+                    String rgbPath = "sdcard/FIRST/rgbFile.png";
+                    Imgcodecs.imwrite(rgbPath, hsvPic);
 
                     //thresholded image should be saved here
-                    String filePath = "sdcard/FIRST/rgbFile.png";
+                    String filePath = "sdcard/FIRST/thresholdedFile" +
+                            "+.png";
                     Imgcodecs.imwrite(filePath, threshold);
 
                     //use this for extra help: http://overchargedrobotics.org/wp-content/uploads/2018/08/Advanced-Programming-Vision.pdf

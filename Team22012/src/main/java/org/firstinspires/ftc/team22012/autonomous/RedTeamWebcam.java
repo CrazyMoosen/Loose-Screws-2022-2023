@@ -113,20 +113,23 @@ public class RedTeamWebcam extends LinearOpMode{
                     //but OpenCV uses H: 0-180, S:0-255, V: 0-255
                     //values I got (0, 100, 100) and (250, 100, 100)
                     //but I divided the H by 2 and defined a range:
-                    Scalar red_lower = new Scalar(0, 70, 50);
-                    Scalar red_upper = new Scalar(10, 255, 255);
+                    Scalar red_lower = new Scalar(90, 50, 70);
+                    Scalar red_upper = new Scalar(128, 255, 255);
 
                     //input image converts to HSV
                     Mat hsvPic = new Mat();
                     Imgproc.cvtColor(img, hsvPic, Imgproc.COLOR_BGR2HSV);
 
-                    //the thresholded frame that is black and white and shows the blue in the picture.
+                    //the thresholded frame that is black and white and shows the red in the picture.
                     Mat threshold = new Mat();
                     Core.inRange(hsvPic, red_lower, red_upper, threshold);
 
+                    String rgbPath = "sdcard/FIRST/rgbFile.png";
+                    Imgcodecs.imwrite(rgbPath, hsvPic);
+
 
                     //thresholded image should be saved here
-                    String filePath = "sdcard/FIRST/rgbFile.png";
+                    String filePath = "sdcard/FIRST/thresholdedFile.png";
                     Imgcodecs.imwrite(filePath, threshold);
 
                     //use this for extra help: http://overchargedrobotics.org/wp-content/uploads/2018/08/Advanced-Programming-Vision.pdf
