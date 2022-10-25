@@ -119,7 +119,7 @@ public class BlueTeamWebcam extends LinearOpMode{
 
                     //input image converts to HSV
                     Mat hsvPic = new Mat();
-                    Imgproc.cvtColor(img, hsvPic, Imgproc.COLOR_BGR2HSV);
+                    Imgproc.cvtColor(img, hsvPic, Imgproc.COLOR_RGB2HSV);
 
                     //the thresholded frame that is black and white and shows the blue in the picture.
                     Mat threshold = new Mat();

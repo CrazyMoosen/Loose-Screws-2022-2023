@@ -113,8 +113,8 @@ public class RedTeamWebcam extends LinearOpMode{
                     //but OpenCV uses H: 0-180, S:0-255, V: 0-255
                     //values I got (0, 100, 100) and (250, 100, 100)
                     //but I divided the H by 2 and defined a range:
-                    Scalar red_lower = new Scalar(0, 140, 128);
-                    Scalar red_upper = new Scalar(12, 255, 255);
+                    Scalar red_lower = new Scalar(0, 70, 50);
+                    Scalar red_upper = new Scalar(10, 255, 255);
 
                     //input image converts to HSV
                     Mat hsvPic = new Mat();
