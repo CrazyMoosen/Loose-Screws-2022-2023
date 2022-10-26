@@ -6,13 +6,12 @@ import com.qualcomm.robotcore.hardware.HardwareMap;
 public class ArmSubsystem {
     private Motor S1, S2;
 
-    Motor linearSlideMotor;
     //the position of the linear slide
     int position;
 
     public ArmSubsystem(HardwareMap hardwareMap) {
-
-        linearSlideMotor = new Motor(hardwareMap, "linearSlideMotor");
+        S1 = hardwareMap.get(Motor.class, "S1");
+        S2 = hardwareMap.get(Motor.class, "S2");
         position = 0;
 
     }
@@ -29,12 +28,14 @@ public class ArmSubsystem {
         S2.setRunMode(Motor.RunMode.RawPower);
         S2.set(0.75);
     }
-    public void ArmMove(double height){
+
+    public void armMove(double height){
         S1.setRunMode(Motor.RunMode.RawPower);
         S1.set(height);
         S2.setRunMode(Motor.RunMode.RawPower);
         S2.set(height);
     }
+
     public void completeRetract(){
         S1.setRunMode(Motor.RunMode.RawPower);
         S1.set(-0.75);

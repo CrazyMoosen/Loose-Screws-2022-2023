@@ -117,8 +117,8 @@ public class BlueTeamWebcam extends LinearOpMode{
                     //Scalar blue_lower = new Scalar(80, 50, 25);
                     //Scalar blue_upper = new Scalar(125, 255, 255);
 
-                    Scalar blue_lower = new Scalar(90, 50, 70);
-                    Scalar blue_upper = new Scalar(128, 255, 255);
+                    Scalar blue_lower = new Scalar(70.8333D, 62, 81);
+                    Scalar blue_upper = new Scalar(92.0833D, 255, 255);
 
                     //input image converts to HSV
                     Mat hsvPic = new Mat();
@@ -132,8 +132,7 @@ public class BlueTeamWebcam extends LinearOpMode{
                     Imgcodecs.imwrite(rgbPath, hsvPic);
 
                     //thresholded image should be saved here
-                    String filePath = "sdcard/FIRST/thresholdedFile" +
-                            "+.png";
+                    String filePath = "sdcard/FIRST/thresholdedFile.png";
                     Imgcodecs.imwrite(filePath, threshold);
 
                     //use this for extra help: http://overchargedrobotics.org/wp-content/uploads/2018/08/Advanced-Programming-Vision.pdf
