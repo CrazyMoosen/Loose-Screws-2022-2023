@@ -1,6 +1,7 @@
 package org.firstinspires.ftc.team22012.autonomous;
 
 import static java.lang.Math.cos;
+import static java.lang.Math.pow;
 import static java.lang.Math.sin;
 
 import com.arcrobotics.ftclib.drivebase.MecanumDrive;
@@ -31,7 +32,7 @@ public class AutonomousMode extends LinearOpMode {
     double bearing;
     
     // Coefficients
-    final double distancePerPulse = 0.015;
+    final double distancePerPulse = 18;
 
     private ElapsedTime runTime;
 
@@ -61,10 +62,13 @@ public class AutonomousMode extends LinearOpMode {
 
         waitForStart();
         // Just some test code
-        moveForward(0.8, 18);
+        //moveForward(0.8, 90);
+        //move(1.0, 90);
+        moveForwardv2(1.0, 900);
         telemetry.addData("Position Forward", movementForward);
         telemetry.addData("Position Left", movementLeft);
         telemetry.addData("Angle", bearing);
+        /**
         moveBackward(0.8, 18);
         moveForwardv2(0.8, 18);
         telemetry.addData("Position Forward", movementForward);
@@ -77,10 +81,23 @@ public class AutonomousMode extends LinearOpMode {
         telemetry.addData("Angle", bearing);
         moveRight(0.8, 18);
         turnLeft(0.8, 90);
-        telemetry.addData("Position Forward", movementForward);
-        telemetry.addData("Position Left", movementLeft);
-        telemetry.addData("Angle", bearing);
         telemetry.update();
+         **/
+    }
+
+    public void move(double power, int distance) {
+        fL.setTargetDistance((int) (fL.getDistance() + distance));
+        fR.setTargetDistance((int) (fR.getDistance() + distance));
+        bL.setTargetDistance((int) (bL.getDistance() + distance));
+        bR.setTargetDistance((int) (bR.getDistance() + distance));
+        telemetry.addData("Target Distance", (int) (fL.getDistance() + distance));
+
+        while (!fL.atTargetPosition() || !fR.atTargetPosition() || !bL.atTargetPosition() || !bR.atTargetPosition()) {
+            mecanumDrive.driveRobotCentric(0, -power, 0);
+        }
+        telemetry.addData("Distance: ", fL.getDistance());
+        telemetry.update();
+        mecanumDrive.driveRobotCentric(0, 0, 0);
     }
 
     public void moveForward(double power, double distance){
@@ -90,10 +107,16 @@ public class AutonomousMode extends LinearOpMode {
         fR.setTargetDistance(distance);
         bR.setTargetDistance(distance);
 
-        fL.set(power);
-        fR.set(power);
-        bL.set(power);
-        bR.set(power);
+        while (!fL.atTargetPosition()) {
+            fL.set(power);
+            fR.set(power);
+            bL.set(power);
+            bR.set(power);
+        }
+        fL.stopMotor();
+        bL.stopMotor();
+        fR.stopMotor();
+        bR.stopMotor();
 
         movementForward += fR.getDistance() * cos(bearing);
         movementLeft += fR.getDistance() * sin(bearing);
@@ -101,7 +124,7 @@ public class AutonomousMode extends LinearOpMode {
 
     public void moveForwardv2(double power, double distance){
         while (bL.getCurrentPosition() < distance) {
-            mecanumDrive.driveWithMotorPowers(power, power, power, power);
+            mecanumDrive.driveWithMotorPowers(-power, -power, -power, -power);
         }
         movementForward += fR.getDistance();
 
@@ -116,11 +139,16 @@ public class AutonomousMode extends LinearOpMode {
         fR.setTargetDistance(distance);
         bR.setTargetDistance(distance);
 
-        fL.set(-power);
-        fR.set(-power);
-        bL.set(-power);
-        bR.set(-power);
-        movementForward -= fR.getDistance();
+        while (!fL.atTargetPosition()) {
+            fL.set(-power);
+            fR.set(-power);
+            bL.set(-power);
+            bR.set(-power);
+        }
+        fL.stopMotor();
+        bL.stopMotor();
+        fR.stopMotor();
+        bR.stopMotor();
 
         movementForward -= fR.getDistance() * cos(bearing);
         movementLeft -= fR.getDistance() * sin(bearing);
@@ -143,11 +171,16 @@ public class AutonomousMode extends LinearOpMode {
         fR.setTargetDistance(distance);
         bR.setTargetDistance(distance);
 
-        fL.set(-power);
-        fR.set(power);
-        bL.set(power);
-        bR.set(-power);
-        movementLeft += fR.getDistance();
+        while (!fL.atTargetPosition()) {
+            fL.set(-power);
+            fR.set(power);
+            bL.set(power);
+            bR.set(-power);
+        }
+        fL.stopMotor();
+        bL.stopMotor();
+        fR.stopMotor();
+        bR.stopMotor();
 
         movementForward += fR.getDistance() * sin(bearing);
         movementLeft += fR.getDistance() * cos(bearing);
@@ -160,12 +193,16 @@ public class AutonomousMode extends LinearOpMode {
         fR.setTargetDistance(distance);
         bR.setTargetDistance(distance);
 
-        fL.set(power);
-        fR.set(-power);
-        bL.set(-power);
-        bR.set(power);
-        movementLeft -= fR.getDistance();
-
+        while (!fL.atTargetPosition()) {
+            fL.set(power);
+            fR.set(-power);
+            bL.set(-power);
+            bR.set(power);
+        }
+        fL.stopMotor();
+        bL.stopMotor();
+        fR.stopMotor();
+        bR.stopMotor();
         movementForward -= fR.getDistance() * sin(bearing);
         movementLeft -= fR.getDistance() * cos(bearing);
     }
