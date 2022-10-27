@@ -15,10 +15,10 @@ public class AutonomousModeV3 extends LinearOpMode {
     ElapsedTime elapsedTime = new ElapsedTime();
 
     // Experimentally determined variables
-    double speed = 64; // In inches/sec
-    double stoppingDistance = 0.55; // In inches, the distance it takes to stop the robot travelling
+    double speed = 50.5; // In inches/sec
+    double stoppingDistance = 1; // In inches, the distance it takes to stop the robot travelling
     // at the power of 0.8
-    double degPerSec = 1;
+    double degPerSec = 160;
 
     @Override
     public void runOpMode() throws InterruptedException {
@@ -37,9 +37,11 @@ public class AutonomousModeV3 extends LinearOpMode {
         waitForStart();
         //after play is pressed
         //move forward at 1.0 speed for one sec
-        moveLinear(0.8, 20);
+        moveLinear(0.8, 53);
         moveLinear(-0.8, stoppingDistance);
-        turnForSec(0.6, 5);
+        turn(-0.8, 90);
+        moveLinear(0.8, 53);
+        moveLinear(-0.8, stoppingDistance);
         telemetry.addData("fL says:", fL.encoder.getDistance());
         telemetry.addData("fR says:", fR.encoder.getDistance());
         telemetry.addData("bL says:", bL.encoder.getDistance());

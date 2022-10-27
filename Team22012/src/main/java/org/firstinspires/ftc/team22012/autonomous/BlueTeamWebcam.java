@@ -117,8 +117,8 @@ public class BlueTeamWebcam extends LinearOpMode{
                     //Scalar blue_lower = new Scalar(80, 50, 25);
                     //Scalar blue_upper = new Scalar(125, 255, 255);
 
-                    Scalar blue_lower = new Scalar(70.8333D, 62, 81);
-                    Scalar blue_upper = new Scalar(92.0833D, 255, 255);
+                    Scalar blue_lower = new Scalar(0.8333D, 62, 81);
+                    Scalar blue_upper = new Scalar(140.0833D, 255, 255);
 
                     //input image converts to HSV
                     Mat hsvPic = new Mat();

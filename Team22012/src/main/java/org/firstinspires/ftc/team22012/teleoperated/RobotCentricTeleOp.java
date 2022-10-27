@@ -44,9 +44,9 @@ public class RobotCentricTeleOp extends OpMode {
     @Override
     public void loop() {
         mecanumDrive.driveRobotCentric(
-                shreyController.getLeftX(),
-                -shreyController.getLeftY(),
-                -shreyController.getRightX()
+                shreyController.getLeftX()*0.5,
+                -shreyController.getLeftY()*0.5,
+                -shreyController.getRightX()*0.5
         );
     }
 }
