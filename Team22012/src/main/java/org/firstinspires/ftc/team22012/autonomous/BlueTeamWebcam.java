@@ -115,10 +115,18 @@ public class BlueTeamWebcam extends LinearOpMode{
                     //values I got (180, 100, 100) and (250, 100, 100)
                     //but I divided the H by 2 and defined a range:
                     //Scalar blue_lower = new Scalar(80, 50, 25);
-                    //Scalar blue_upper = new Scalar(125, 255, 255);
 
-                    Scalar blue_lower = new Scalar(0.8333D, 62, 81);
-                    Scalar blue_upper = new Scalar(140.0833D, 255, 255);
+                    //detects blue
+                    //Scalar blue_lower = new Scalar(90.8333D, 62, 81);
+                    //Scalar blue_upper = new Scalar(128.0833D, 255, 255);
+
+                    //trying to detect purple:
+                    Scalar purple_lower = new Scalar(100, 62, 50);
+                    Scalar purple_upper = new Scalar(255, 255, 255);
+
+                    //trying to get yellow balls
+                    Scalar yellow_lower = new Scalar(0,62, 128);
+                    Scalar yellow_upper = new Scalar(90, 255, 255);
 
                     //input image converts to HSV
                     Mat hsvPic = new Mat();
@@ -126,7 +134,12 @@ public class BlueTeamWebcam extends LinearOpMode{
 
                     //the thresholded frame that is black and white and shows the blue in the picture.
                     Mat threshold = new Mat();
-                    Core.inRange(hsvPic, blue_lower, blue_upper, threshold);
+                    Core.inRange(hsvPic, purple_lower, purple_upper, threshold);
+
+                    Mat threshold2 = new Mat();
+                    Core.inRange(hsvPic, yellow_lower, yellow_upper, threshold2);
+
+
 
                     String rgbPath = "sdcard/FIRST/rgbFile.png";
                     Imgcodecs.imwrite(rgbPath, hsvPic);
