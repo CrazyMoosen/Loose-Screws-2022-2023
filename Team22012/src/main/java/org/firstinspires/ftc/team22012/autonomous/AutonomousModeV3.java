@@ -37,10 +37,10 @@ public class AutonomousModeV3 extends LinearOpMode {
         waitForStart();
         //after play is pressed
         //move forward at 1.0 speed for one sec
-        moveLinear(0.8, 53);
+        moveLinear(0.8, 19);
         moveLinear(-0.8, stoppingDistance);
-        turn(-0.8, 90);
-        moveLinear(0.8, 53);
+        turn(0.8, 80);
+        moveLinear(0.8, 16);
         moveLinear(-0.8, stoppingDistance);
         telemetry.addData("fL says:", fL.encoder.getDistance());
         telemetry.addData("fR says:", fR.encoder.getDistance());

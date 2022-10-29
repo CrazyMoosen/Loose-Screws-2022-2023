@@ -121,13 +121,15 @@ public class BlueTeamWebcam extends LinearOpMode{
                     //Scalar blue_upper = new Scalar(128.0833D, 255, 255);
 
                     //trying to detect purple:
-                    Scalar purple_lower = new Scalar(100, 62, 50);
+                    Scalar purple_lower = new Scalar(100, 62, 128);
                     Scalar purple_upper = new Scalar(255, 255, 255);
 
                     //trying to get yellow balls
                     Scalar yellow_lower = new Scalar(0,62, 128);
-                    Scalar yellow_upper = new Scalar(90, 255, 255);
-
+                    Scalar yellow_upper = new Scalar(45, 255, 255);
+                    //trying to get green
+                    Scalar green_lower = new Scalar(45,62, 0);
+                    Scalar green_upper = new Scalar(90, 255, 128);
                     //input image converts to HSV
                     Mat hsvPic = new Mat();
                     Imgproc.cvtColor(img, hsvPic, Imgproc.COLOR_RGB2HSV);
@@ -139,15 +141,20 @@ public class BlueTeamWebcam extends LinearOpMode{
                     Mat threshold2 = new Mat();
                     Core.inRange(hsvPic, yellow_lower, yellow_upper, threshold2);
 
-
+                    Mat threshold3 = new Mat();
+                    Core.inRange(hsvPic, green_lower, green_upper, threshold3);
 
                     String rgbPath = "sdcard/FIRST/rgbFile.png";
                     Imgcodecs.imwrite(rgbPath, hsvPic);
 
-                    //thresholded image should be saved here
-                    String filePath = "sdcard/FIRST/thresholdedFile.png";
+                    //thresholded images should be saved here
+                    String filePath = "sdcard/FIRST/thresholdFile.png";
                     Imgcodecs.imwrite(filePath, threshold);
 
+                    String filePath2 = "sdcard/FIRST/threshold2File.png";
+                    Imgcodecs.imwrite(filePath2, threshold2);
+                    String filePath3 = "sdcard/FIRST/threshold3File.png";
+                    Imgcodecs.imwrite(filePath3, threshold3);
                     //use this for extra help: http://overchargedrobotics.org/wp-content/uploads/2018/08/Advanced-Programming-Vision.pdf
                 }
                 if (tfod != null) {
