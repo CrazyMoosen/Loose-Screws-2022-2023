@@ -16,14 +16,26 @@ import org.opencv.android.Utils;
 import org.opencv.core.Core;
 import org.opencv.core.CvType;
 import org.opencv.core.Mat;
+import org.opencv.core.MatOfPoint;
+import org.opencv.core.MatOfPoint2f;
+import org.opencv.core.Rect;
 import org.opencv.core.Scalar;
 import org.opencv.imgcodecs.Imgcodecs;
 import org.opencv.imgproc.Imgproc;
 
+import java.sql.Array;
+import java.util.ArrayList;
 import java.util.List;
 
 @Autonomous(name = "Vuforia Webcam Detection Blue Team")
 public class BlueTeamWebcam extends LinearOpMode{
+    public enum SignalSleeveLocation{
+        GREEN,
+        YELLOW,
+        PURPLE,
+        NONE
+    }
+    private SignalSleeveLocation location;
     /**
      * Specify the source for the Tensor Flow Model.
      * If the TensorFlowLite object model is included in the Robot Controller App as an "asset",
@@ -144,6 +156,27 @@ public class BlueTeamWebcam extends LinearOpMode{
                     Mat threshold3 = new Mat();
                     Core.inRange(hsvPic, green_lower, green_upper, threshold3);
 
+                    long whitepixels3 =Core.countNonZero(threshold3);
+                    long totalpixels3 = threshold3.total();
+                    long whitepixels2 =Core.countNonZero(threshold2);
+                    long totalpixels2 = threshold2.total();
+                    long whitepixels1 =Core.countNonZero(threshold);
+                    long totalpixels1 = threshold.total();
+                    if (whitepixels1>whitepixels2 && whitepixels1>whitepixels3){
+                        location=SignalSleeveLocation.PURPLE;
+                    } else if (whitepixels2>whitepixels1 && whitepixels2>whitepixels3){
+                        location=SignalSleeveLocation.YELLOW;
+                    } else if(whitepixels3>whitepixels1 && whitepixels3>whitepixels2){
+                        location=SignalSleeveLocation.GREEN;
+                    } else{
+                        location=SignalSleeveLocation.NONE;
+                    }
+
+
+
+                    String countourpath = "sdcard/FIRST/counterpath.png";
+                    Imgcodecs.imwrite(countourpath, img);
+
                     String rgbPath = "sdcard/FIRST/rgbFile.png";
                     Imgcodecs.imwrite(rgbPath, hsvPic);
 
@@ -156,6 +189,7 @@ public class BlueTeamWebcam extends LinearOpMode{
                     String filePath3 = "sdcard/FIRST/threshold3File.png";
                     Imgcodecs.imwrite(filePath3, threshold3);
                     //use this for extra help: http://overchargedrobotics.org/wp-content/uploads/2018/08/Advanced-Programming-Vision.pdf
+
                 }
                 if (tfod != null) {
                     // getUpdatedRecognitions() will return null if no new information is available since
@@ -176,6 +210,18 @@ public class BlueTeamWebcam extends LinearOpMode{
                             telemetry.addData("Image", "%s (%.0f %% Conf.)", recognition.getLabel(), recognition.getConfidence() * 100 );
                             telemetry.addData("- Position (Row/Col)","%.0f / %.0f", row, col);
                             telemetry.addData("- Size (Width/Height)","%.0f / %.0f", width, height);
+                        }
+                        if (location==SignalSleeveLocation.GREEN){
+                            telemetry.addData("location is", "green");
+                        }
+                        if (location==SignalSleeveLocation.PURPLE){
+                            telemetry.addData("location is", "purple");
+                        }
+                        if (location==SignalSleeveLocation.YELLOW){
+                            telemetry.addData("location is", "yellow");
+                        }
+                        if (location==SignalSleeveLocation.NONE){
+                            telemetry.addData("location is", "none");
                         }
                         telemetry.update();
                     }
