@@ -276,18 +276,20 @@ public class BlueTeamWebcam extends LinearOpMode{
                             moved = true;
                         }
                         if (location == SignalSleeveLocation.PURPLE) {
-                            moveLinear(0.8, 9);
+                            moveLinear(-0.8, 10);
+                            moveLinear(0.8, stoppingDistance);
+                            strafeLinear(0.8, 23);
+                            strafeLinear(-0.8, stoppingDistance);
+                            moveLinear(0.8, 30);
                             moveLinear(-0.8, stoppingDistance);
-                            turn(-0.8, 60);
-                            moveLinear(0.8, 16);
-                            moveLinear(-0.8, stoppingDistance);
-                            moved = true;
+                              moved = true;
                         }
                         if (location == SignalSleeveLocation.YELLOW) {
-                            moveLinear(0.8, 9);
-                            moveLinear(-0.8, stoppingDistance);
-                            turn(0.8, 60);
-                            moveLinear(0.8, 16);
+                            moveLinear(-0.8, 10);
+                            moveLinear(0.8, stoppingDistance);
+                            strafeLinear(-0.8, 23);
+                            strafeLinear(0.8, stoppingDistance);
+                            moveLinear(0.8, 30);
                             moveLinear(-0.8, stoppingDistance);
                             moved = true;
                         }
