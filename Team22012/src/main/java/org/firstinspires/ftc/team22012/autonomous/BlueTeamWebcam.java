@@ -131,6 +131,7 @@ public class BlueTeamWebcam extends LinearOpMode{
         waitForStart();
 
         if (opModeIsActive()) {
+            moveLinear(0.8, 10);
             while (opModeIsActive()) {
                 //vuforia.rgb represents the image/frame given by the camera
                 if (vuforia.rgb != null) {
@@ -157,19 +158,19 @@ public class BlueTeamWebcam extends LinearOpMode{
                     //Scalar blue_upper = new Scalar(128.0833D, 255, 255);
 
                     //trying to detect purple:
-                    Mat ROI = img.submat(new Rect(new Point(225, 300), new Point(400, 480)));
+                    Mat ROI = img.submat(new Rect(new Point(175, 270), new Point(425, 480)));
                     String roiPath = "sdcard/FIRST/roiPath.png";
                     Imgcodecs.imwrite(roiPath, ROI);
 
                     Scalar purple_lower = new Scalar(100, 50, 75);
-                    Scalar purple_upper = new Scalar(255, 255, 255);
+                    Scalar purple_upper = new Scalar(255, 255, 200);
 
                     //trying to get yellow balls
                     Scalar yellow_lower = new Scalar(0, 62, 128);
-                    Scalar yellow_upper = new Scalar(45, 255, 175);
+                    Scalar yellow_upper = new Scalar(45, 255, 200);
                     //trying to get green
-                    Scalar green_lower = new Scalar(45, 0, 0);
-                    Scalar green_upper = new Scalar(90, 255, 100);
+                    Scalar green_lower = new Scalar(45, 0, 75);
+                    Scalar green_upper = new Scalar(90, 255, 128);
                     //input image converts to HSV
                     //Mat hsvPic = new Mat();
                     //Imgproc.cvtColor(img, hsvPic, Imgproc.COLOR_RGB2HSV);
@@ -270,12 +271,12 @@ public class BlueTeamWebcam extends LinearOpMode{
                 if(!moved) {
                     if (run < 10 || location != SignalSleeveLocation.NONE) {
                         if (location == SignalSleeveLocation.GREEN) {
-                            moveLinear(0.8, 19);
+                            moveLinear(0.8, 9);
                             moveLinear(-0.8, stoppingDistance);
                             moved = true;
                         }
                         if (location == SignalSleeveLocation.PURPLE) {
-                            moveLinear(0.8, 19);
+                            moveLinear(0.8, 9);
                             moveLinear(-0.8, stoppingDistance);
                             turn(-0.8, 60);
                             moveLinear(0.8, 16);
@@ -283,7 +284,7 @@ public class BlueTeamWebcam extends LinearOpMode{
                             moved = true;
                         }
                         if (location == SignalSleeveLocation.YELLOW) {
-                            moveLinear(0.8, 19);
+                            moveLinear(0.8, 9);
                             moveLinear(-0.8, stoppingDistance);
                             turn(0.8, 60);
                             moveLinear(0.8, 16);
@@ -295,28 +296,6 @@ public class BlueTeamWebcam extends LinearOpMode{
                     }
                 }
                 run++;
-            }
-
-//if (location==SignalSleeveLocation.GREEN){
-            //    moveLinear(-0.8, 19);
-            //    moveLinear(0.8, stoppingDistance);
-            //}
-            //if (location==SignalSleeveLocation.PURPLE){
-            //    moveLinear(0.8, 19);
-            //    moveLinear(-0.8, stoppingDistance);
-            //turn(-0.8, 80);
-            //moveLinear(0.8, 16);
-            //moveLinear(-0.8, stoppingDistance);
-            //}
-//                if (location==SignalSleeveLocation.YELLOW){
-//                    moveLinear(0.8, 19);
-//                    moveLinear(0.8, stoppingDistance);
-//                    turn(-0.8, 80);
-//                    moveLinear(-0.8, 16);
-//                    moveLinear(0.8, stoppingDistance);
-//                }
-            if (location==SignalSleeveLocation.NONE){
-
             }
         }
     }
@@ -338,7 +317,6 @@ public class BlueTeamWebcam extends LinearOpMode{
         bR.set(0);
         bL.set(0);
     }
-
     public void strafeLinear(double power, double distance) {
         double time = distance / (speed * abs(power));
         elapsedTime.reset();
@@ -364,22 +342,36 @@ public class BlueTeamWebcam extends LinearOpMode{
         bR.set(0);
         bL.set(0);
     }
-
-    public void moveRight(double power, double distance){
+    public void MoveUpAndRight(double power, double distance){
+        // Negative power for backright movement
         double time = distance / (speed * abs(power));
         elapsedTime.reset();
         while (elapsedTime.milliseconds() < time * 1000) {
-            fL.set(-power);
-            fR.set(power);
-            bL.set(power);
-            bR.set(-power);
+            fL.set(power);
+            fR.set(0);
+            bL.set(0);
+            bR.set(power);
         }
         fL.set(0);
         fR.set(0);
         bR.set(0);
         bL.set(0);
     }
-
+    public void MoveUpAndLeft(double power, double distance){
+        // Negative power for backleft movement
+        double time = distance / (speed * abs(power));
+        elapsedTime.reset();
+        while (elapsedTime.milliseconds() < time * 1000) {
+            fL.set(0);
+            fR.set(power);
+            bL.set(power);
+            bR.set(0);
+        }
+        fL.set(0);
+        fR.set(0);
+        bR.set(0);
+        bL.set(0);
+    }
     public void turnForSec(double power, double time){
         elapsedTime.reset();
         while (elapsedTime.milliseconds() < time * 1000) {
@@ -395,6 +387,7 @@ public class BlueTeamWebcam extends LinearOpMode{
     }
 
     public void turn(double power, double angle){
+        // turns counterclockwise negative power for clockwise
         elapsedTime.reset();
         double time  = angle / degPerSec;
         while (elapsedTime.milliseconds() < time * 1000) {
