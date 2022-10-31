@@ -8,8 +8,8 @@ public class ClawSubsystem extends SubsystemBase {
     HardwareMap hardwareMap;
 
     //initialize claw
-    public ClawSubsystem(final HardwareMap hardwareMap) {
-
+    public ClawSubsystem(HardwareMap hardwareMap) {
+        this.hardwareMap = hardwareMap;
     }
 
     //function that closes the gripper, parameter is the value taken to grab the cone

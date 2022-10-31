@@ -23,29 +23,39 @@ import org.opencv.core.Mat;
 import org.opencv.core.Point;
 import org.opencv.core.Rect;
 import org.opencv.core.Scalar;
-import org.opencv.imgcodecs.Imgcodecs;
 import org.opencv.imgproc.Imgproc;
 
 import java.util.List;
 
-@Autonomous(name = "Vuforia Webcam Detection Blue Team")
-public class BlueTeamWebcam extends LinearOpMode{
-    public enum SignalSleeveLocation{
+//@Autonomous(name = "Vuforia Webcam Detection Blue Team")
+@Autonomous(name = "Autonomous Mode")
+public class AutonomousMode extends LinearOpMode{
+
+    //The enumeration that is going to be used to detect where to park the robot
+    public enum SignalSleeveColor {
         GREEN,
         YELLOW,
         PURPLE,
         NONE;
     }
-    private SignalSleeveLocation location;
+
+    private Rect ROIRect = new Rect(new Point(175, 270), new Point(425, 480));
+
+    //the variable used to hold the color that the camera will detect
+    private SignalSleeveColor sleeveColor;
+
+    //this variable will hold the percent of yellow/purple/green detected
+    //to further compare against each other and find what color the sleeve
+    //actually is
     double percent = 0;
     Motor fL, fR, bL, bR;
     ElapsedTime elapsedTime = new ElapsedTime();
 
     // Experimentally determined variables
-    double speed = 50.5; // In inches/sec
-    double stoppingDistance = 1; // In inches, the distance it takes to stop the robot travelling
+    final double speed = 50.5; // In inches/sec
+    final double stoppingDistance = 1; // In inches, the distance it takes to stop the robot travelling
     // at the power of 0.8
-    double degPerSec = 160;
+    final double degPerSec = 160;
     /**
      * Specify the source for the Tensor Flow Model.
      * If the TensorFlowLite object model is included in the Robot Controller App as an "asset",
@@ -56,6 +66,7 @@ public class BlueTeamWebcam extends LinearOpMode{
     private static final String TFOD_MODEL_ASSET = "PowerPlay.tflite";
     //private static final String TFOD_MODEL_FILE  = "/sdcard/FIRST/tflitemodels/CustomTeamModel.tflite";
 
+    //random stuff dont pay attention to this
     private static final String[] LABELS = {
             "1 Bolt",
             "2 Bulb",
@@ -93,13 +104,13 @@ public class BlueTeamWebcam extends LinearOpMode{
 
     @Override
     public void runOpMode() {
+        //Initializes all the motors
         fL = new Motor(hardwareMap, "fL", Motor.GoBILDA.RPM_312);
         fR = new Motor(hardwareMap, "fR", Motor.GoBILDA.RPM_312);
         bL = new Motor(hardwareMap, "bL", Motor.GoBILDA.RPM_312);
         bR = new Motor(hardwareMap, "bR", Motor.GoBILDA.RPM_312);
 
-        MecanumDrive mecanumDrive = new MecanumDrive(fL, fR, bL, bR);
-
+        //sets the distance per pulse so we can move the robot accordingly
         fL.setDistancePerPulse(18);
         fR.setDistancePerPulse(18);
         bR.setDistancePerPulse(18);
@@ -132,9 +143,11 @@ public class BlueTeamWebcam extends LinearOpMode{
 
         if (opModeIsActive()) {
             moveLinear(0.8, 10);
+            moveLinear(-0.8, stoppingDistance);
             while (opModeIsActive()) {
                 //vuforia.rgb represents the image/frame given by the camera
                 if (vuforia.rgb != null) {
+
                     //converts image to bitmap so that OpenCV can use it to threshold
                     Bitmap bm = Bitmap.createBitmap(vuforia.rgb.getWidth(), vuforia.rgb.getHeight(), Bitmap.Config.RGB_565);
                     bm.copyPixelsFromBuffer(vuforia.rgb.getPixels());
@@ -143,90 +156,61 @@ public class BlueTeamWebcam extends LinearOpMode{
                     Mat img = new Mat(vuforia.rgb.getHeight(), vuforia.rgb.getWidth(), CvType.CV_8UC3);
                     Utils.bitmapToMat(bm, img);
 
-                    //Pipelines the input frame (has not tested this yet cuz shrika nabbed the control hub
-                    //MonishPython pipeline = new MonishPython(telemetry);
-                    //Mat threshold = pipeline.processFrame(img);
-
-                    //https://colorpicker.me/ uses H: 0-360, S: 0-100, V: 0-100
-                    //but OpenCV uses H: 0-180, S:0-255, V: 0-255
-                    //values I got (180, 100, 100) and (250, 100, 100)
-                    //but I divided the H by 2 and defined a range:
-                    //Scalar blue_lower = new Scalar(80, 50, 25);
-
                     //detects blue
                     //Scalar blue_lower = new Scalar(90.8333D, 62, 81);
                     //Scalar blue_upper = new Scalar(128.0833D, 255, 255);
 
-                    //trying to detect purple:
-                    Mat ROI = img.submat(new Rect(new Point(175, 270), new Point(425, 480)));
-                    String roiPath = "sdcard/FIRST/roiPath.png";
-                    Imgcodecs.imwrite(roiPath, ROI);
+                    //Gets the Region Of Interest that includes the Signal Cone based on where the robot starts off during the autonomous period
+                    Mat ROI = img.submat(ROIRect);
 
+                    //range of values that detects the color purple
                     Scalar purple_lower = new Scalar(100, 50, 75);
                     Scalar purple_upper = new Scalar(255, 255, 200);
 
-                    //trying to get yellow balls
+                    //range of values that detects the color yellow
                     Scalar yellow_lower = new Scalar(0, 62, 128);
                     Scalar yellow_upper = new Scalar(45, 255, 200);
-                    //trying to get green
+
+                    //range of values that detects the color green
                     Scalar green_lower = new Scalar(45, 0, 75);
                     Scalar green_upper = new Scalar(90, 255, 128);
-                    //input image converts to HSV
-                    //Mat hsvPic = new Mat();
-                    //Imgproc.cvtColor(img, hsvPic, Imgproc.COLOR_RGB2HSV);
 
                     Mat ROIHsv = new Mat();
                     Imgproc.cvtColor(ROI, ROIHsv, Imgproc.COLOR_RGB2HSV);
 
-                    //the thresholded frame that is black and white and shows the blue in the picture.
-                    //Mat threshold = new Mat();
-                    //Core.inRange(hsvPic, purple_lower, purple_upper, threshold);
+                    Mat thresholdedForPurple = new Mat();
+                    Core.inRange(ROIHsv, purple_lower, purple_upper, thresholdedForPurple);
 
-                    Mat threshold = new Mat();
-                    Core.inRange(ROIHsv, purple_lower, purple_upper, threshold);
-                    //Core.inRange(ROIHsv, purple_lower, purple_upper, ROIThresh);
-                    //Core.inRange(ROIHsv, purple_lower, purple_upper, ROIThresh);
+                    Mat thresholdedForYellow = new Mat();
+                    Core.inRange(ROIHsv, yellow_lower, yellow_upper, thresholdedForYellow);
 
-                    String roiThreshPath = "sdcard/FIRST/roiThreshPath.png";
-                    Imgcodecs.imwrite(roiThreshPath, threshold);
+                    Mat thresholdedForGreen = new Mat();
+                    Core.inRange(ROIHsv, green_lower, green_upper, thresholdedForGreen);
 
-                    Mat threshold2 = new Mat();
-                    //Core.inRange(hsvPic, yellow_lower, yellow_upper, threshold2);
-                    Core.inRange(ROIHsv, yellow_lower, yellow_upper, threshold2);
+                    long whitePixelsGreen = Core.countNonZero(thresholdedForGreen);
+                    long whitePixelsYellow = Core.countNonZero(thresholdedForYellow);
+                    long whitePixelsPurple = Core.countNonZero(thresholdedForPurple);
 
-                    Mat threshold3 = new Mat();
-                    //Core.inRange(hsvPic, green_lower, green_upper, threshold3);
-                    Core.inRange(ROIHsv, green_lower, green_upper, threshold3);
+                    double greenValuePercent = Core.sumElems(thresholdedForGreen).val[0] / ROIRect.area() / 255;
+                    double yellowValuePercent = Core.sumElems(thresholdedForYellow).val[0] / ROIRect.area() / 255;
+                    double purpleValuePercent = Core.sumElems(thresholdedForPurple).val[0] / ROIRect.area() / 255;
 
-                    long whitepixels3 =Core.countNonZero(threshold3);
-                    long total = ROIHsv.total();
-                    long whitepixels2 =Core.countNonZero(threshold2);
-                    long whitepixels1 =Core.countNonZero(threshold);
-                    if (whitepixels1>whitepixels2 && whitepixels1>whitepixels3 && whitepixels1*100/total >= 20) {
-                        location = SignalSleeveLocation.PURPLE;
-                        percent = whitepixels1*100/total;
-                    } else if (whitepixels2>whitepixels1 && whitepixels2>whitepixels3 && whitepixels2*100/total >= 20) {
-                        location=SignalSleeveLocation.YELLOW;
-                        percent = whitepixels2*100/total;
-                    } else if (whitepixels3>whitepixels1 && whitepixels3>whitepixels2 && whitepixels3*100/total >= 20) {
-                        location=SignalSleeveLocation.GREEN;
-                        percent = whitepixels3*100/total;
-                    } else {
-                        location = SignalSleeveLocation.NONE;
+                    if (whitePixelsPurple>whitePixelsYellow && whitePixelsPurple>whitePixelsGreen && Math.round(purpleValuePercent*100) >= 20) {
+                        sleeveColor = SignalSleeveColor.PURPLE;
+                        percent = Math.round(purpleValuePercent*100);
+                    }
+                    else if (whitePixelsYellow>whitePixelsPurple && whitePixelsYellow>whitePixelsGreen && Math.round(yellowValuePercent*100) >= 20) {
+                        sleeveColor = SignalSleeveColor.YELLOW;
+                        percent = Math.round(yellowValuePercent * 100);
+                    }
+                    else if (whitePixelsGreen>whitePixelsPurple && whitePixelsGreen>whitePixelsYellow && Math.round(greenValuePercent*100) >= 20) {
+                        sleeveColor = SignalSleeveColor.GREEN;
+                        percent = Math.round(greenValuePercent * 100);
+                    }
+                    else {
+                        sleeveColor = SignalSleeveColor.NONE;
                         percent = 0;
                     }
-
-                    //String rgbPath = "sdcard/FIRST/rgbFile.png";
-                    //Imgcodecs.imwrite(rgbPath, hsvPic);
-
-                    //thresholded images should be saved here
-                    //String filePath = "sdcard/FIRST/thresholdFile.png";
-                    //Imgcodecs.imwrite(filePath, threshold);
-
-                    //String filePath2 = "sdcard/FIRST/threshold2File.png";
-                    //Imgcodecs.imwrite(filePath2, threshold2);
-                    //String filePath3 = "sdcard/FIRST/threshold3File.png";
-                    //Imgcodecs.imwrite(filePath3, threshold3);
                     //use this for extra help: http://overchargedrobotics.org/wp-content/uploads/2018/08/Advanced-Programming-Vision.pdf
 
                 }
@@ -250,32 +234,33 @@ public class BlueTeamWebcam extends LinearOpMode{
                             telemetry.addData("- Position (Row/Col)","%.0f / %.0f", row, col);
                             telemetry.addData("- Size (Width/Height)","%.0f / %.0f", width, height);
                         }
-                        if (location==SignalSleeveLocation.GREEN){
-                            telemetry.addData("location is", "green");
-                        }
-                        if (location==SignalSleeveLocation.PURPLE){
-                            telemetry.addData("location is", "purple");
-                        }
-                        if (location==SignalSleeveLocation.YELLOW){
-                            telemetry.addData("location is", "yellow");
-                        }
-                        if (location==SignalSleeveLocation.NONE){
-                            telemetry.addData("location is", "none");
-                        }
-                        telemetry.addData("Percentage of color", percent);
-                        telemetry.update();
                     }
                 }
 
-                //move bobot
+                if (sleeveColor == SignalSleeveColor.GREEN){
+                    telemetry.addData("location is", "green");
+                }
+                if (sleeveColor == SignalSleeveColor.PURPLE){
+                    telemetry.addData("location is", "purple");
+                }
+                if (sleeveColor == SignalSleeveColor.YELLOW){
+                    telemetry.addData("location is", "yellow");
+                }
+                if (sleeveColor == SignalSleeveColor.NONE){
+                    telemetry.addData("location is", "none");
+                }
+                telemetry.addData("Percentage of color", percent);
+                telemetry.update();
+
+                //move robot when detected signal sleeve
                 if(!moved) {
-                    if (run < 10 || location != SignalSleeveLocation.NONE) {
-                        if (location == SignalSleeveLocation.GREEN) {
+                    if (run < 10 || sleeveColor != SignalSleeveColor.NONE) {
+                        if (sleeveColor == SignalSleeveColor.GREEN) {
                             moveLinear(0.8, 9);
                             moveLinear(-0.8, stoppingDistance);
                             moved = true;
                         }
-                        if (location == SignalSleeveLocation.PURPLE) {
+                        if (sleeveColor == SignalSleeveColor.PURPLE) {
                             moveLinear(-0.8, 10);
                             moveLinear(0.8, stoppingDistance);
                             strafeLinear(0.8, 23);
@@ -284,7 +269,7 @@ public class BlueTeamWebcam extends LinearOpMode{
                             moveLinear(-0.8, stoppingDistance);
                               moved = true;
                         }
-                        if (location == SignalSleeveLocation.YELLOW) {
+                        if (sleeveColor == SignalSleeveColor.YELLOW) {
                             moveLinear(-0.8, 10);
                             moveLinear(0.8, stoppingDistance);
                             strafeLinear(-0.8, 23);
@@ -293,7 +278,7 @@ public class BlueTeamWebcam extends LinearOpMode{
                             moveLinear(-0.8, stoppingDistance);
                             moved = true;
                         }
-                        if (location == SignalSleeveLocation.NONE) {
+                        if (sleeveColor == SignalSleeveColor.NONE) {
                         }
                     }
                 }
@@ -329,7 +314,6 @@ public class BlueTeamWebcam extends LinearOpMode{
         mecanumDrive.driveRobotCentric(0, 0, 0);
     }
 
-
     public void moveLinearTime(double power, double time) {
         // This code will move backward if the power is negative
         elapsedTime.reset();
@@ -344,36 +328,7 @@ public class BlueTeamWebcam extends LinearOpMode{
         bR.set(0);
         bL.set(0);
     }
-    public void MoveUpAndRight(double power, double distance){
-        // Negative power for backright movement
-        double time = distance / (speed * abs(power));
-        elapsedTime.reset();
-        while (elapsedTime.milliseconds() < time * 1000) {
-            fL.set(power);
-            fR.set(0);
-            bL.set(0);
-            bR.set(power);
-        }
-        fL.set(0);
-        fR.set(0);
-        bR.set(0);
-        bL.set(0);
-    }
-    public void MoveUpAndLeft(double power, double distance){
-        // Negative power for backleft movement
-        double time = distance / (speed * abs(power));
-        elapsedTime.reset();
-        while (elapsedTime.milliseconds() < time * 1000) {
-            fL.set(0);
-            fR.set(power);
-            bL.set(power);
-            bR.set(0);
-        }
-        fL.set(0);
-        fR.set(0);
-        bR.set(0);
-        bL.set(0);
-    }
+
     public void turnForSec(double power, double time){
         elapsedTime.reset();
         while (elapsedTime.milliseconds() < time * 1000) {
@@ -416,8 +371,6 @@ public class BlueTeamWebcam extends LinearOpMode{
         parameters.vuforiaLicenseKey = VUFORIA_KEY;
         parameters.cameraName = hardwareMap.get(WebcamName.class, "Webcam 1");
 
-        //  Instantiate the Vuforia engine
-        //vuforia = ClassFactory.getInstance().createVuforia(parameters);
         vuforia = new VuforiaLocalizerImplSubclass(parameters);
     }
 
@@ -436,6 +389,5 @@ public class BlueTeamWebcam extends LinearOpMode{
         // Use loadModelFromAsset() if the TF Model is built in as an asset by Android Studio
         // Use loadModelFromFile() if you have downloaded a custom team model to the Robot Controller's FLASH.
         tfod.loadModelFromAsset(TFOD_MODEL_ASSET, LABELS);
-        // tfod.loadModelFromFile(TFOD_MODEL_FILE, LABELS);
     }
 }
