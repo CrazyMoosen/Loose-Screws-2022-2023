@@ -61,9 +61,9 @@ public class AutoV1 extends LinearOpMode{
     boolean scoredPreloadedCone = false;
     boolean obtainedColor = false;
     int x1 =36;
-    int xf;
+    int xf=0;
     int y1 =0;
-    int yf;
+    int yf=0;
 
     /**
      * Specify the source for the Tensor Flow Model.
@@ -155,7 +155,7 @@ public class AutoV1 extends LinearOpMode{
                 takePicture();
             }
             elapsedTime.startTime();
-            autoPhase1(24, 0);
+            autoPhase1(24);
             while (opModeIsActive() && !moved){
             if (elapsedTime.seconds()>20) {
                 park(sleeveColor, 4, 0);
@@ -163,29 +163,38 @@ public class AutoV1 extends LinearOpMode{
                 }
             }
         }
-    private void autoPhase1(int x1, int y1){
-            strafeLinear(-0.6, 26);
+    private void autoPhase1(int x1){
+        if (x1==24) {
+            strafeLinear(-0.6, 24);
             strafeLinear(1, stoppingDistance);
-            xf = xf-26;
+            xf = xf +0;
             moveLinear(0.6, 33);
             moveLinear(-1, stoppingDistance);
-            yf = yf+33;
+            yf = yf + 33;
+        } else{
+            strafeLinear(0.6, 24);
+            strafeLinear(1, stoppingDistance);
+            xf = xf+120;
+            moveLinear(0.6, 33);
+            moveLinear(-1, stoppingDistance);
+            yf = yf + 33;
+        }
     }
     private void park(SignalSleeveColor color, int xf, int yf) {
         if (!moved) {
             if (sleeveColor != SignalSleeveColor.NONE) {
                 if (sleeveColor == SignalSleeveColor.GREEN) {
-                    moveLinear(0.6, 20);
+
 
                     moved = true;
                 }
                 if (sleeveColor == SignalSleeveColor.PURPLE) {
-                strafeLinear(0.6, 15);
+
 
                     moved = true;
                 }
                 if (sleeveColor == SignalSleeveColor.YELLOW) {
-                turn(0.6, 150);
+
 
                     moved = true;
                 }

@@ -3,6 +3,7 @@ package org.firstinspires.ftc.team22012.teleoperated;
 import com.arcrobotics.ftclib.drivebase.MecanumDrive;
 import com.arcrobotics.ftclib.drivebase.RobotDrive;
 import com.arcrobotics.ftclib.gamepad.GamepadEx;
+import com.arcrobotics.ftclib.gamepad.GamepadKeys;
 import com.arcrobotics.ftclib.geometry.Vector2d;
 import com.arcrobotics.ftclib.hardware.ServoEx;
 import com.arcrobotics.ftclib.hardware.SimpleServo;
@@ -24,6 +25,8 @@ public class RobotCentricTeleOp extends OpMode {
     private MecanumDrive mecanumDrive;
     private GamepadEx shreyController;
     private GamepadEx monishController;
+    private boolean aIstoggled = false;
+    private float driveSpeed =0.45f;
     //private CRServo linearSlideServo1;
     //private ArmSubsystem arm;
     //private ClawSubsystem claw;
@@ -47,10 +50,20 @@ public class RobotCentricTeleOp extends OpMode {
 
     @Override
     public void loop() {
+        if (shreyController.wasJustPressed(GamepadKeys.Button.A) && !aIstoggled){
+            aIstoggled=true;
+        } else if (shreyController.wasJustPressed(GamepadKeys.Button.A) && aIstoggled){
+            aIstoggled =false;
+        }
+        if (aIstoggled) {
+            driveSpeed =0.90f;
+        } else{
+            driveSpeed =0.45f;
+        }
         mecanumDrive.driveRobotCentric(
-                -shreyController.getLeftX()*0.45,
-                -shreyController.getLeftY()*0.45,
-                -shreyController.getRightX()*0.45
+                -shreyController.getLeftX() * driveSpeed,
+                -shreyController.getLeftY() * driveSpeed,
+                -shreyController.getRightX() * driveSpeed
         );
     }
 }
