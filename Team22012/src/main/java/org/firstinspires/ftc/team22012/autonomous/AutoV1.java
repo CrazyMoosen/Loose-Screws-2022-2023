@@ -23,13 +23,14 @@ import org.opencv.core.Mat;
 import org.opencv.core.Point;
 import org.opencv.core.Rect;
 import org.opencv.core.Scalar;
+import org.opencv.imgcodecs.Imgcodecs;
 import org.opencv.imgproc.Imgproc;
 
 import java.util.List;
 
 //@Autonomous(name = "Vuforia Webcam Detection Blue Team")
-@Autonomous(name = "Autonomous Mode")
-public class AutonomousMode extends LinearOpMode{
+@Autonomous(name = "Left Side Autonomous Mode")
+public class AutoV1 extends LinearOpMode{
 
     //The enumeration that is going to be used to detect where to park the robot
     public enum SignalSleeveColor {
@@ -39,7 +40,7 @@ public class AutonomousMode extends LinearOpMode{
         NONE;
     }
 
-    private Rect ROIRect = new Rect(new Point(175, 270), new Point(425, 480));
+    private final Rect ROIRect = new Rect(new Point(75, 0), new Point(480, 410));
 
     //the variable used to hold the color that the camera will detect
     private SignalSleeveColor sleeveColor;
@@ -52,10 +53,18 @@ public class AutonomousMode extends LinearOpMode{
     ElapsedTime elapsedTime = new ElapsedTime();
 
     // Experimentally determined variables
-    final double speed = 50.5; // In inches/sec
-    final double stoppingDistance = 1; // In inches, the distance it takes to stop the robot travelling
-    // at the power of 0.8
-    final double degPerSec = 160;
+    final double speed = 55; // In inches/sec
+    final double stoppingDistance = 2.1; // In inches, the distance it takes to stop the robot travelling
+    // at the power of 0.6
+    final double degPerSec = 150;
+    final double stoppingdegrees = 5;
+    boolean scoredPreloadedCone = false;
+    boolean obtainedColor = false;
+    int x1 =36;
+    int xf;
+    int y1 =0;
+    int yf;
+
     /**
      * Specify the source for the Tensor Flow Model.
      * If the TensorFlowLite object model is included in the Robot Controller App as an "asset",
@@ -133,7 +142,7 @@ public class AutonomousMode extends LinearOpMode{
             // to artificially zoom in to the center of image.  For best results, the "aspectRatio" argument
             // should be set to the value of the images used to create the TensorFlow Object Detection model
             // (typically 16/9).
-            tfod.setZoom(1.0, 16.0/9.0);
+            tfod.setZoom(1.0, 16.0 / 9.0);
         }
 
         /** Wait for the game to begin */
@@ -142,148 +151,138 @@ public class AutonomousMode extends LinearOpMode{
         waitForStart();
 
         if (opModeIsActive()) {
-            moveLinear(0.8, 10);
-            moveLinear(-0.8, stoppingDistance);
-            while (opModeIsActive()) {
-                //vuforia.rgb represents the image/frame given by the camera
-                if (vuforia.rgb != null) {
-
-                    //converts image to bitmap so that OpenCV can use it to threshold
-                    Bitmap bm = Bitmap.createBitmap(vuforia.rgb.getWidth(), vuforia.rgb.getHeight(), Bitmap.Config.RGB_565);
-                    bm.copyPixelsFromBuffer(vuforia.rgb.getPixels());
-
-                    //converts bitmap frame to OpenCV Mat class
-                    Mat img = new Mat(vuforia.rgb.getHeight(), vuforia.rgb.getWidth(), CvType.CV_8UC3);
-                    Utils.bitmapToMat(bm, img);
-
-                    //detects blue
-                    //Scalar blue_lower = new Scalar(90.8333D, 62, 81);
-                    //Scalar blue_upper = new Scalar(128.0833D, 255, 255);
-
-                    //Gets the Region Of Interest that includes the Signal Cone based on where the robot starts off during the autonomous period
-                    Mat ROI = img.submat(ROIRect);
-
-                    //range of values that detects the color purple
-                    Scalar purple_lower = new Scalar(100, 50, 75);
-                    Scalar purple_upper = new Scalar(255, 255, 200);
-
-                    //range of values that detects the color yellow
-                    Scalar yellow_lower = new Scalar(0, 62, 128);
-                    Scalar yellow_upper = new Scalar(45, 255, 200);
-
-                    //range of values that detects the color green
-                    Scalar green_lower = new Scalar(45, 0, 75);
-                    Scalar green_upper = new Scalar(90, 255, 128);
-
-                    Mat ROIHsv = new Mat();
-                    Imgproc.cvtColor(ROI, ROIHsv, Imgproc.COLOR_RGB2HSV);
-
-                    Mat thresholdedForPurple = new Mat();
-                    Core.inRange(ROIHsv, purple_lower, purple_upper, thresholdedForPurple);
-
-                    Mat thresholdedForYellow = new Mat();
-                    Core.inRange(ROIHsv, yellow_lower, yellow_upper, thresholdedForYellow);
-
-                    Mat thresholdedForGreen = new Mat();
-                    Core.inRange(ROIHsv, green_lower, green_upper, thresholdedForGreen);
-
-                    long whitePixelsGreen = Core.countNonZero(thresholdedForGreen);
-                    long whitePixelsYellow = Core.countNonZero(thresholdedForYellow);
-                    long whitePixelsPurple = Core.countNonZero(thresholdedForPurple);
-
-                    double greenValuePercent = Core.sumElems(thresholdedForGreen).val[0] / ROIRect.area() / 255;
-                    double yellowValuePercent = Core.sumElems(thresholdedForYellow).val[0] / ROIRect.area() / 255;
-                    double purpleValuePercent = Core.sumElems(thresholdedForPurple).val[0] / ROIRect.area() / 255;
-
-                    if (whitePixelsPurple>whitePixelsYellow && whitePixelsPurple>whitePixelsGreen && Math.round(purpleValuePercent*100) >= 20) {
-                        sleeveColor = SignalSleeveColor.PURPLE;
-                        percent = Math.round(purpleValuePercent*100);
-                    }
-                    else if (whitePixelsYellow>whitePixelsPurple && whitePixelsYellow>whitePixelsGreen && Math.round(yellowValuePercent*100) >= 20) {
-                        sleeveColor = SignalSleeveColor.YELLOW;
-                        percent = Math.round(yellowValuePercent * 100);
-                    }
-                    else if (whitePixelsGreen>whitePixelsPurple && whitePixelsGreen>whitePixelsYellow && Math.round(greenValuePercent*100) >= 20) {
-                        sleeveColor = SignalSleeveColor.GREEN;
-                        percent = Math.round(greenValuePercent * 100);
-                    }
-                    else {
-                        sleeveColor = SignalSleeveColor.NONE;
-                        percent = 0;
-                    }
-                    //use this for extra help: http://overchargedrobotics.org/wp-content/uploads/2018/08/Advanced-Programming-Vision.pdf
-
-                }
-                if (tfod != null) {
-                    // getUpdatedRecognitions() will return null if no new information is available since
-                    // the last time that call was made.
-                    List<Recognition> updatedRecognitions = tfod.getUpdatedRecognitions();
-                    if (updatedRecognitions != null) {
-                        telemetry.addData("# Objects Detected", updatedRecognitions.size());
-
-                        // step through the list of recognitions and display image position/size information for each one
-                        // Note: "Image number" refers to the randomized image orientation/number
-                        for (Recognition recognition : updatedRecognitions) {
-                            double col = (recognition.getLeft() + recognition.getRight()) / 2 ;
-                            double row = (recognition.getTop()  + recognition.getBottom()) / 2 ;
-                            double width  = Math.abs(recognition.getRight() - recognition.getLeft()) ;
-                            double height = Math.abs(recognition.getTop()  - recognition.getBottom()) ;
-
-                            telemetry.addData(""," ");
-                            telemetry.addData("Image", "%s (%.0f %% Conf.)", recognition.getLabel(), recognition.getConfidence() * 100 );
-                            telemetry.addData("- Position (Row/Col)","%.0f / %.0f", row, col);
-                            telemetry.addData("- Size (Width/Height)","%.0f / %.0f", width, height);
-                        }
-                    }
-                }
-
-                if (sleeveColor == SignalSleeveColor.GREEN){
-                    telemetry.addData("location is", "green");
-                }
-                if (sleeveColor == SignalSleeveColor.PURPLE){
-                    telemetry.addData("location is", "purple");
-                }
-                if (sleeveColor == SignalSleeveColor.YELLOW){
-                    telemetry.addData("location is", "yellow");
-                }
-                if (sleeveColor == SignalSleeveColor.NONE){
-                    telemetry.addData("location is", "none");
-                }
-                telemetry.addData("Percentage of color", percent);
-                telemetry.update();
-
-                //move robot when detected signal sleeve
-                if(!moved) {
-                    if (run < 10 || sleeveColor != SignalSleeveColor.NONE) {
-                        if (sleeveColor == SignalSleeveColor.GREEN) {
-                            moveLinear(0.8, 9);
-                            moveLinear(-0.8, stoppingDistance);
-                            moved = true;
-                        }
-                        if (sleeveColor == SignalSleeveColor.PURPLE) {
-                            moveLinear(-0.8, 10);
-                            moveLinear(0.8, stoppingDistance);
-                            strafeLinear(0.8, 23);
-                            strafeLinear(-0.8, stoppingDistance);
-                            moveLinear(0.8, 30);
-                            moveLinear(-0.8, stoppingDistance);
-                              moved = true;
-                        }
-                        if (sleeveColor == SignalSleeveColor.YELLOW) {
-                            moveLinear(-0.8, 10);
-                            moveLinear(0.8, stoppingDistance);
-                            strafeLinear(-0.8, 23);
-                            strafeLinear(0.8, stoppingDistance);
-                            moveLinear(0.8, 30);
-                            moveLinear(-0.8, stoppingDistance);
-                            moved = true;
-                        }
-                        if (sleeveColor == SignalSleeveColor.NONE) {
-                        }
-                    }
-                }
-                run++;
+            for (int i=0; i<100; i++) {
+                takePicture();
             }
+            elapsedTime.startTime();
+            autoPhase1(24, 0);
+            while (opModeIsActive() && !moved){
+            if (elapsedTime.seconds()>20) {
+                park(sleeveColor, 4, 0);
+            }
+                }
+            }
+        }
+    private void autoPhase1(int x1, int y1){
+            strafeLinear(-0.6, 26);
+            strafeLinear(1, stoppingDistance);
+            xf = xf-26;
+            moveLinear(0.6, 33);
+            moveLinear(-1, stoppingDistance);
+            yf = yf+33;
+    }
+    private void park(SignalSleeveColor color, int xf, int yf) {
+        if (!moved) {
+            if (sleeveColor != SignalSleeveColor.NONE) {
+                if (sleeveColor == SignalSleeveColor.GREEN) {
+                    moveLinear(0.6, 20);
+
+                    moved = true;
+                }
+                if (sleeveColor == SignalSleeveColor.PURPLE) {
+                strafeLinear(0.6, 15);
+
+                    moved = true;
+                }
+                if (sleeveColor == SignalSleeveColor.YELLOW) {
+                turn(0.6, 150);
+
+                    moved = true;
+                }
+                if (sleeveColor == SignalSleeveColor.NONE) {
+                }
+            }
+        }
+    }
+    private void takePicture() {
+        if (tfod != null) {
+            // getUpdatedRecognitions() will return null if no new information is available since
+            // the last time that call was made.
+            List<Recognition> updatedRecognitions = tfod.getUpdatedRecognitions();
+            if (updatedRecognitions != null) {
+                telemetry.addData("# Objects Detected", updatedRecognitions.size());
+
+                // step through the list of recognitions and display image position/size information for each one
+                // Note: "Image number" refers to the randomized image orientation/number
+                for (Recognition recognition : updatedRecognitions) {
+                    double col = (recognition.getLeft() + recognition.getRight()) / 2;
+                    double row = (recognition.getTop() + recognition.getBottom()) / 2;
+                    double width = Math.abs(recognition.getRight() - recognition.getLeft());
+                    double height = Math.abs(recognition.getTop() - recognition.getBottom());
+
+                    telemetry.addData("", " ");
+                    telemetry.addData("Image", "%s (%.0f %% Conf.)", recognition.getLabel(), recognition.getConfidence() * 100);
+                    telemetry.addData("- Position (Row/Col)", "%.0f / %.0f", row, col);
+                    telemetry.addData("- Size (Width/Height)", "%.0f / %.0f", width, height);
+                }
+            }
+        }
+
+        if (vuforia.rgb != null && !obtainedColor) {
+            //converts image to bitmap so that OpenCV can use it to threshold
+            Bitmap bm = Bitmap.createBitmap(vuforia.rgb.getWidth(), vuforia.rgb.getHeight(), Bitmap.Config.RGB_565);
+            bm.copyPixelsFromBuffer(vuforia.rgb.getPixels());
+
+            //converts bitmap frame to OpenCV Mat class
+            Mat img = new Mat(vuforia.rgb.getHeight(), vuforia.rgb.getWidth(), CvType.CV_8UC3);
+            Utils.bitmapToMat(bm, img);
+
+            //detects blue
+            //Scalar blue_lower = new Scalar(90.8333D, 62, 81);
+            //Scalar blue_upper = new Scalar(128.0833D, 255, 255);
+
+            //Gets the Region Of Interest that includes the Signal Cone based on where the robot starts off during the autonomous period
+            Mat ROI = img.submat(ROIRect);
+            String path = "sdcard/FIRST/roiPng.png";
+            Imgcodecs.imwrite(path, ROI);
+
+            //range of values that detects the color purple
+            Scalar purple_lower = new Scalar(128, 50, 85);
+            Scalar purple_upper = new Scalar(240, 240, 240);
+            //range of values that detects the color yellow
+            Scalar yellow_lower = new Scalar(0, 62, 128);
+            Scalar yellow_upper = new Scalar(45, 255, 200);
+
+            //range of values that detects the color green
+            Scalar green_lower = new Scalar(45, 0, 25);
+            Scalar green_upper = new Scalar(90, 255, 150);
+
+            Mat ROIHsv = new Mat();
+            Imgproc.cvtColor(ROI, ROIHsv, Imgproc.COLOR_RGB2HSV);
+            Mat thresholdedForPurple = new Mat();
+            Core.inRange(ROIHsv, purple_lower, purple_upper, thresholdedForPurple);
+
+            Mat thresholdedForYellow = new Mat();
+            Core.inRange(ROIHsv, yellow_lower, yellow_upper, thresholdedForYellow);
+
+            Mat thresholdedForGreen = new Mat();
+            Core.inRange(ROIHsv, green_lower, green_upper, thresholdedForGreen);
+
+            long whitePixelsGreen = Core.countNonZero(thresholdedForGreen);
+            long whitePixelsYellow = Core.countNonZero(thresholdedForYellow);
+            long whitePixelsPurple = Core.countNonZero(thresholdedForPurple);
+
+            double greenValuePercent = Core.sumElems(thresholdedForGreen).val[0] / ROIRect.area() / 255;
+            double yellowValuePercent = Core.sumElems(thresholdedForYellow).val[0] / ROIRect.area() / 255;
+            double purpleValuePercent = Core.sumElems(thresholdedForPurple).val[0] / ROIRect.area() / 255;
+
+            if (whitePixelsPurple > whitePixelsYellow && whitePixelsPurple > whitePixelsGreen && Math.round(purpleValuePercent * 100) >= 20) {
+                sleeveColor = SignalSleeveColor.PURPLE;
+                telemetry.addData("purple", "purple");
+                percent = Math.round(purpleValuePercent * 100);
+            } else if (whitePixelsYellow > whitePixelsPurple && whitePixelsYellow > whitePixelsGreen && Math.round(yellowValuePercent * 100) >= 20) {
+                sleeveColor = SignalSleeveColor.YELLOW;
+                telemetry.addData("yellow", "yellow");
+                percent = Math.round(yellowValuePercent * 100);
+            } else if (whitePixelsGreen > whitePixelsPurple && whitePixelsGreen > whitePixelsYellow && Math.round(greenValuePercent * 100) >= 20) {
+                sleeveColor = SignalSleeveColor.GREEN;
+                telemetry.addData("green", "green");
+                percent = Math.round(greenValuePercent * 100);
+            } else {
+                telemetry.addData("none", "none");
+                percent = 0;
+            }
+            //use this for extra help: http://overchargedrobotics.org/wp-content/uploads/2018/08/Advanced-Programming-Vision.pdf
         }
     }
 
@@ -312,6 +311,10 @@ public class AutonomousMode extends LinearOpMode{
             mecanumDrive.driveRobotCentric(-power, 0, 0);
         }
         mecanumDrive.driveRobotCentric(0, 0, 0);
+    }
+
+    public void strafeLeft(double power, double distance) {
+        strafeLinear(Math.abs(power), distance);
     }
 
     public void moveLinearTime(double power, double time) {
@@ -344,7 +347,7 @@ public class AutonomousMode extends LinearOpMode{
     }
 
     public void turn(double power, double angle){
-        // turns counterclockwise negative power for clockwise
+        // turns counterclockwise; negative power for clockwise
         elapsedTime.reset();
         double time  = angle / degPerSec;
         while (elapsedTime.milliseconds() < time * 1000) {
