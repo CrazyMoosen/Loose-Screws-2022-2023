@@ -3,6 +3,7 @@ package org.firstinspires.ftc.team22012.teleoperated;
 import com.arcrobotics.ftclib.drivebase.MecanumDrive;
 import com.arcrobotics.ftclib.drivebase.RobotDrive;
 import com.arcrobotics.ftclib.gamepad.GamepadEx;
+import com.arcrobotics.ftclib.gamepad.GamepadKeys;
 import com.arcrobotics.ftclib.geometry.Vector2d;
 import com.arcrobotics.ftclib.hardware.motors.Motor;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
@@ -52,10 +53,14 @@ public class RobotCentricTeleOp extends OpMode {
 
     @Override
     public void loop() {
+        double speedMultiplier = 1.0;
+        if (shreyController.isDown(GamepadKeys.Button.A)) {
+            speedMultiplier = 1.5;
+        }
         mecanumDrive.driveRobotCentric(
-                -shreyController.getLeftX()*0.65,
-                -shreyController.getLeftY()*0.65,
-                -shreyController.getRightX()*0.65
+                -shreyController.getLeftX()*0.45*speedMultiplier,
+                -shreyController.getLeftY()*0.45*speedMultiplier,
+                -shreyController.getRightX()*0.45*speedMultiplier
         );
     }
 }

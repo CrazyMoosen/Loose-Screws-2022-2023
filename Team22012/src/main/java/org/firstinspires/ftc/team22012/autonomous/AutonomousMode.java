@@ -39,7 +39,7 @@ public class AutonomousMode extends LinearOpMode{
         NONE;
     }
 
-    private Rect ROIRect = new Rect(new Point(175, 270), new Point(425, 480));
+    private final Rect ROIRect = new Rect(new Point(75, 0), new Point(480, 410));
 
     //the variable used to hold the color that the camera will detect
     private SignalSleeveColor sleeveColor;
@@ -52,10 +52,14 @@ public class AutonomousMode extends LinearOpMode{
     ElapsedTime elapsedTime = new ElapsedTime();
 
     // Experimentally determined variables
-    final double speed = 50.5; // In inches/sec
-    final double stoppingDistance = 1; // In inches, the distance it takes to stop the robot travelling
-    // at the power of 0.8
-    final double degPerSec = 160;
+    final double speed = 55; // In inches/sec
+    final double stoppingDistance = 2.1; // In inches, the distance it takes to stop the robot travelling
+    // at the power of 0.6
+    final double degPerSec = 150;
+    final double stoppingDegrees = 5;
+
+    //testing this just means the robot will start off at Blue 1 position and will face toward the red side.
+    private RobotPosition robot = new RobotPosition(hardwareMap, 0, 26, Direction.Right);
     /**
      * Specify the source for the Tensor Flow Model.
      * If the TensorFlowLite object model is included in the Robot Controller App as an "asset",
@@ -142,8 +146,10 @@ public class AutonomousMode extends LinearOpMode{
         waitForStart();
 
         if (opModeIsActive()) {
-            moveLinear(0.8, 10);
-            moveLinear(-0.8, stoppingDistance);
+            //this should do the same thing as below
+            robot.moveToPos(robot.getX() + 10, robot.getY());
+            //moveLinear(0.6, 10);
+            //moveLinear(-0.6, stoppingDistance);
             while (opModeIsActive()) {
                 //vuforia.rgb represents the image/frame given by the camera
                 if (vuforia.rgb != null) {
@@ -256,26 +262,26 @@ public class AutonomousMode extends LinearOpMode{
                 if(!moved) {
                     if (run < 10 || sleeveColor != SignalSleeveColor.NONE) {
                         if (sleeveColor == SignalSleeveColor.GREEN) {
-                            moveLinear(0.8, 9);
-                            moveLinear(-0.8, stoppingDistance);
+                            moveLinear(0.6, 9);
+                            moveLinear(-0.6, stoppingDistance);
                             moved = true;
                         }
                         if (sleeveColor == SignalSleeveColor.PURPLE) {
-                            moveLinear(-0.8, 10);
-                            moveLinear(0.8, stoppingDistance);
-                            strafeLinear(0.8, 23);
-                            strafeLinear(-0.8, stoppingDistance);
-                            moveLinear(0.8, 30);
-                            moveLinear(-0.8, stoppingDistance);
+                            moveLinear(-0.6, 10);
+                            moveLinear(0.6, stoppingDistance);
+                            strafeLinear(0.6, 23);
+                            strafeLinear(-0.6, stoppingDistance);
+                            moveLinear(0.6, 30);
+                            moveLinear(-0.6, stoppingDistance);
                               moved = true;
                         }
                         if (sleeveColor == SignalSleeveColor.YELLOW) {
-                            moveLinear(-0.8, 10);
-                            moveLinear(0.8, stoppingDistance);
-                            strafeLinear(-0.8, 23);
-                            strafeLinear(0.8, stoppingDistance);
-                            moveLinear(0.8, 30);
-                            moveLinear(-0.8, stoppingDistance);
+                            moveLinear(-0.6, 10);
+                            moveLinear(0.6, stoppingDistance);
+                            strafeLinear(-0.6, 23);
+                            strafeLinear(0.6, stoppingDistance);
+                            moveLinear(0.6, 30);
+                            moveLinear(-0.6, stoppingDistance);
                             moved = true;
                         }
                         if (sleeveColor == SignalSleeveColor.NONE) {
