@@ -56,7 +56,8 @@ public class AutoV1 extends LinearOpMode{
     final double speed = 55; // In inches/sec
     final double stoppingDistance = 2.1; // In inches, the distance it takes to stop the robot travelling
     // at the power of 0.6
-    final double degPerSec = 150;
+    final double strafeSpeed = 40;
+    final double degPerSec = 222;
     final double stoppingdegrees = 5;
     boolean scoredPreloadedCone = false;
     boolean obtainedColor = false;
@@ -151,7 +152,7 @@ public class AutoV1 extends LinearOpMode{
         waitForStart();
 
         if (opModeIsActive()) {
-            moveLinear(0.6, 10);
+//            moveLinear(0.6, 10);
             while(sleeveColor==SignalSleeveColor.NONE){
             if (tfod != null) {
                 // getUpdatedRecognitions() will return null if no new information is available since
@@ -239,11 +240,12 @@ public class AutoV1 extends LinearOpMode{
                 //use this for extra help: http://overchargedrobotics.org/wp-content/uploads/2018/08/Advanced-Programming-Vision.pdf
             }
         }
-            moveLinear(-0.6, 12);
-            telemetry.addData("color", sleeveColor);
-            telemetry.update();
-            autoPhase1(24);
-            park(sleeveColor, xf, yf);
+//            moveLinear(-0.6, 12);
+//            telemetry.addData("color", sleeveColor);
+//            telemetry.update();
+//            autoPhase1(24);
+//            park(sleeveColor, xf, yf)
+              turn(0.6, 90);
                 }
             }
 
@@ -315,19 +317,14 @@ public class AutoV1 extends LinearOpMode{
         yf=yf+(int)distance*(int)(power/abs(power));
     }
     public void strafeLinear(double power, double distance) {
-        double time = abs(distance) / (speed * abs(power));
+        double time = abs(distance) / (strafeSpeed * abs(power));
         elapsedTime.reset();
         MecanumDrive mecanumDrive = new MecanumDrive(fL, fR, bL, bR);
         while (elapsedTime.milliseconds() < time * 1000) {
-            mecanumDrive.driveRobotCentric(-power*(distance/abs(distance)), 0, 0);
+            mecanumDrive.driveRobotCentric(-power*(distance/abs(distance)), 0, 0.1);
         }
         mecanumDrive.driveRobotCentric(0, 0, 0);
         xf=xf+(int)distance*(int)(power/abs(power));
-
-    }
-
-    public void strafeLeft(double power, double distance) {
-        strafeLinear(Math.abs(power), distance);
     }
 
     public void moveLinearTime(double power, double time) {
@@ -405,5 +402,14 @@ public class AutoV1 extends LinearOpMode{
         // Use loadModelFromAsset() if the TF Model is built in as an asset by Android Studio
         // Use loadModelFromFile() if you have downloaded a custom team model to the Robot Controller's FLASH.
         tfod.loadModelFromAsset(TFOD_MODEL_ASSET, LABELS);
+    }
+
+    public void strafeLinearTime(double power, double time) {
+        elapsedTime.reset();
+        MecanumDrive mecanumDrive = new MecanumDrive(fL, fR, bL, bR);
+        while (elapsedTime.milliseconds() < time * 1000) {
+            mecanumDrive.driveRobotCentric(-power, 0, 0);
+        }
+        mecanumDrive.driveRobotCentric(0, 0, 0);
     }
 }
