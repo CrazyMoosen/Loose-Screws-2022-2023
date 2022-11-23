@@ -60,10 +60,9 @@ public class FieldCentricTeleOp extends OpMode {
         //double heading = -imu.getAngularOrientation().firstAngle;
         double heading = -imu.getRobotOrientation(
                 AxesReference.INTRINSIC,
-                AxesOrder.XYZ,
-                AngleUnit.DEGREES
-        ).firstAngle; // in the docs it says firstAngle is the angle u specify first in the order on line 61, therefore this will be the x-axis
-        //if x-axis does not work, i have a lurking suspicion the Z - axis will work.
+                AxesOrder.ZYX, //the first angle in the order is the yaw
+                AngleUnit.DEGREES //mecanumDrive.driveFieldCentric() converts it to radians in the code, and requires it to be in deg
+        ).firstAngle; //IT IS CONFIRMED THROUGH THE SS IN DISCORD THAT THE ANGLES ARE **AROUND** THE AXIS, THEREFORE AROUND THE Z AXIS WILL BE THE HEADING
 
         mecanumDrive.driveFieldCentric(
                 //Joystick inputs range from -1.0D to 1.0D
