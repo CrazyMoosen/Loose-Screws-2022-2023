@@ -56,7 +56,6 @@ public class AutonomousMode extends LinearOpMode{
     final double stoppingDistance = 2.1; // In inches, the distance it takes to stop the robot travelling
     // at the power of 0.6
     final double degPerSec = 150;
-    final double stoppingDegrees = 5;
 
     //testing this just means the robot will start off at Blue 1 position and will face toward the red side.
     private RobotPosition robot = new RobotPosition(hardwareMap, 0, 26, Direction.Right);

@@ -5,6 +5,8 @@ import com.arcrobotics.ftclib.drivebase.RobotDrive;
 import com.arcrobotics.ftclib.gamepad.GamepadEx;
 import com.arcrobotics.ftclib.gamepad.GamepadKeys;
 import com.arcrobotics.ftclib.geometry.Vector2d;
+import com.arcrobotics.ftclib.hardware.ServoEx;
+import com.arcrobotics.ftclib.hardware.SimpleServo;
 import com.arcrobotics.ftclib.hardware.motors.Motor;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
@@ -29,14 +31,13 @@ public class RobotCentricTeleOp extends OpMode {
     private MecanumDrive mecanumDrive;
     private GamepadEx shreyController;
     //private GamepadEx monishController;
-
     /**
      * This is for the arm and the claw management, once we build the claw
      * and finalize the {@link ClawSubsystem} and {@link ArmSubsystem} hardware
      * classes.
      */
     //private ArmSubsystem arm;
-    //private ClawSubsystem claw;
+    private ClawSubsystem claw;
 
     @Override
     public void init() {
@@ -44,12 +45,11 @@ public class RobotCentricTeleOp extends OpMode {
         fR = new Motor(hardwareMap, "fR", Motor.GoBILDA.RPM_312);
         bL = new Motor(hardwareMap, "bL", Motor.GoBILDA.RPM_312);
         bR = new Motor(hardwareMap, "bR", Motor.GoBILDA.RPM_312);
-
         mecanumDrive = new MecanumDrive(fL, fR, bL, bR);
 
         shreyController = new GamepadEx(gamepad1);
         //monishController = new GamepadEx(gamepad2);
-        //claw = new ClawSubArmSubsystemsystem(hardwareMap);
+        claw = new ClawSubsystem(hardwareMap);
         //arm = new (hardwareMap);
     }
 
@@ -64,5 +64,11 @@ public class RobotCentricTeleOp extends OpMode {
                 -shreyController.getLeftY()*0.45*speedMultiplier,
                 -shreyController.getRightX()*0.45*speedMultiplier
         );
+        if (shreyController.isDown(GamepadKeys.Button.B)) {
+            claw.close(shreyController.getRightY());
+        }
+        if (shreyController.isDown(GamepadKeys.Button.Y)) {
+            claw.release(shreyController.getRightY());
+        }
     }
 }
