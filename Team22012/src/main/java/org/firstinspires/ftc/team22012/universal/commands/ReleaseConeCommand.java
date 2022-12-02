@@ -15,7 +15,6 @@ public class ReleaseConeCommand extends CommandBase {
 
     @Override
     public void execute() {
-        claw.release();
     }
 
     @Override
