@@ -6,7 +6,7 @@ import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 
-public class RobotPosition extends Position{
+public class RobotPosition extends Position {
 
     Motor fL, fR, bL, bR;
     Motor.Encoder fLEncoder, fREncoder, bLEncoder, bREncoder;
@@ -29,7 +29,6 @@ public class RobotPosition extends Position{
     }
     public void moveToPos(double endX, double endY) {
         MecanumDrive mecanumDrive = new MecanumDrive(fL, fR, bL, bR);
-        ElapsedTime elapsedTime = new ElapsedTime();
 
         //moves robot to the x position given
         //if the x position to goto is to the right of the current x position
@@ -51,7 +50,7 @@ public class RobotPosition extends Position{
             if (direction == Direction.Right) {
                 //move forward until hit x position
                 double distance = fLEncoder.getDistance();
-                while ((endX - x > fLEncoder.getDistance() - distance)) {
+                while ((endX - x) > (fLEncoder.getDistance() - distance)) {
                     fL.set(-0.6);
                     fR.set(0.6);
                     bL.set(-0.6);

@@ -56,26 +56,18 @@ public class AutonomousMode extends LinearOpMode{
     final double stoppingDistance = 2.1; // In inches, the distance it takes to stop the robot travelling
     // at the power of 0.6
     final double degPerSec = 150;
-    final double stoppingDegrees = 5;
 
     //testing this just means the robot will start off at Blue 1 position and will face toward the red side.
-    private RobotPosition robot = new RobotPosition(hardwareMap, 0, 26, Direction.Right);
+    private final RobotPosition robot = new RobotPosition(hardwareMap, 0, 26, Direction.Right);
     /**
      * Specify the source for the Tensor Flow Model.
      * If the TensorFlowLite object model is included in the Robot Controller App as an "asset",
      * the OpMode must to load it using loadModelFromAsset().  However, if a team generated model
      * has been downloaded to the Robot Controller's SD FLASH memory, it must to be loaded using loadModelFromFile()
-     * Here we assume it's an Asset.    Also see method initTfod() below .
+     * Here we assume it's an Asset. Also see method initTfod() below .
      */
     private static final String TFOD_MODEL_ASSET = "PowerPlay.tflite";
     //private static final String TFOD_MODEL_FILE  = "/sdcard/FIRST/tflitemodels/CustomTeamModel.tflite";
-
-    //random stuff dont pay attention to this
-    private static final String[] LABELS = {
-            "1 Bolt",
-            "2 Bulb",
-            "3 Panel"
-    };
 
     int run = 0;
     boolean moved = false;
@@ -122,7 +114,7 @@ public class AutonomousMode extends LinearOpMode{
         // The TFObjectDetector uses the camera frames from the VuforiaLocalizer, so we create that
         // first.
         initVuforia();
-        initTfod();
+//        initTfod();
 
         /**
          * Activate TensorFlow Object Detection before we wait for the start command.
@@ -220,29 +212,6 @@ public class AutonomousMode extends LinearOpMode{
                     //use this for extra help: http://overchargedrobotics.org/wp-content/uploads/2018/08/Advanced-Programming-Vision.pdf
 
                 }
-                if (tfod != null) {
-                    // getUpdatedRecognitions() will return null if no new information is available since
-                    // the last time that call was made.
-                    List<Recognition> updatedRecognitions = tfod.getUpdatedRecognitions();
-                    if (updatedRecognitions != null) {
-                        telemetry.addData("# Objects Detected", updatedRecognitions.size());
-
-                        // step through the list of recognitions and display image position/size information for each one
-                        // Note: "Image number" refers to the randomized image orientation/number
-                        for (Recognition recognition : updatedRecognitions) {
-                            double col = (recognition.getLeft() + recognition.getRight()) / 2 ;
-                            double row = (recognition.getTop()  + recognition.getBottom()) / 2 ;
-                            double width  = Math.abs(recognition.getRight() - recognition.getLeft()) ;
-                            double height = Math.abs(recognition.getTop()  - recognition.getBottom()) ;
-
-                            telemetry.addData(""," ");
-                            telemetry.addData("Image", "%s (%.0f %% Conf.)", recognition.getLabel(), recognition.getConfidence() * 100 );
-                            telemetry.addData("- Position (Row/Col)","%.0f / %.0f", row, col);
-                            telemetry.addData("- Size (Width/Height)","%.0f / %.0f", width, height);
-                        }
-                    }
-                }
-
                 if (sleeveColor == SignalSleeveColor.GREEN){
                     telemetry.addData("location is", "green");
                 }
@@ -309,6 +278,23 @@ public class AutonomousMode extends LinearOpMode{
         fR.set(0);
         bR.set(0);
         bL.set(0);
+
+        switch(robot.direction) {
+            case Up:
+                robot.setY(robot.getY() - distance);
+                break;
+            case Down:
+                robot.setY(robot.getY() + distance);
+                break;
+            case Left:
+                robot.setX(robot.getX() - distance);
+                break;
+            case Right:
+                robot.setX(robot.getX() + distance);
+                break;
+            default:
+                break;
+        }
     }
     public void strafeLinear(double power, double distance) {
         double time = distance / (speed * abs(power));
@@ -318,6 +304,22 @@ public class AutonomousMode extends LinearOpMode{
             mecanumDrive.driveRobotCentric(-power, 0, 0);
         }
         mecanumDrive.driveRobotCentric(0, 0, 0);
+        switch(robot.direction) {
+            case Up:
+                robot.setX(robot.getX() + distance);
+                break;
+            case Down:
+                robot.setX(robot.getX() - distance);
+                break;
+            case Left:
+                robot.setY(robot.getY() - distance);
+                break;
+            case Right:
+                robot.setY(robot.getY() + distance);
+                break;
+            default:
+                break;
+        }
     }
 
     public void moveLinearTime(double power, double time) {
@@ -383,17 +385,17 @@ public class AutonomousMode extends LinearOpMode{
     /**
      * Initialize the TensorFlow Object Detection engine.
      */
-    private void initTfod() {
-        int tfodMonitorViewId = hardwareMap.appContext.getResources().getIdentifier(
-                "tfodMonitorViewId", "id", hardwareMap.appContext.getPackageName());
-        TFObjectDetector.Parameters tfodParameters = new TFObjectDetector.Parameters(tfodMonitorViewId);
-        tfodParameters.minResultConfidence = 0.75f;
-        tfodParameters.isModelTensorFlow2 = true;
-        tfodParameters.inputSize = 300;
-        tfod = ClassFactory.getInstance().createTFObjectDetector(tfodParameters, vuforia);
-
-        // Use loadModelFromAsset() if the TF Model is built in as an asset by Android Studio
-        // Use loadModelFromFile() if you have downloaded a custom team model to the Robot Controller's FLASH.
-        tfod.loadModelFromAsset(TFOD_MODEL_ASSET, LABELS);
-    }
+//    private void initTfod() {
+//        int tfodMonitorViewId = hardwareMap.appContext.getResources().getIdentifier(
+//                "tfodMonitorViewId", "id", hardwareMap.appContext.getPackageName());
+//        TFObjectDetector.Parameters tfodParameters = new TFObjectDetector.Parameters(tfodMonitorViewId);
+//        tfodParameters.minResultConfidence = 0.75f;
+//        tfodParameters.isModelTensorFlow2 = true;
+//        tfodParameters.inputSize = 300;
+//        tfod = ClassFactory.getInstance().createTFObjectDetector(tfodParameters, vuforia);
+//
+//        // Use loadModelFromAsset() if the TF Model is built in as an asset by Android Studio
+//        // Use loadModelFromFile() if you have downloaded a custom team model to the Robot Controller's FLASH.
+//        tfod.loadModelFromAsset(TFOD_MODEL_ASSET, LABELS);
+//    }
 }

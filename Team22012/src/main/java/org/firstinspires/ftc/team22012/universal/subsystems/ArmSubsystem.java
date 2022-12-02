@@ -1,9 +1,10 @@
 package org.firstinspires.ftc.team22012.universal.subsystems;
 
+import com.arcrobotics.ftclib.command.SubsystemBase;
 import com.arcrobotics.ftclib.hardware.motors.Motor;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
-public class ArmSubsystem {
+public class ArmSubsystem extends SubsystemBase {
     private Motor linearSlideMotor1;
 
     //the position of the linear slide
