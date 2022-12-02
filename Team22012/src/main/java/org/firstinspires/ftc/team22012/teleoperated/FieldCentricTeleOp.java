@@ -55,18 +55,12 @@ public class FieldCentricTeleOp extends OpMode {
         //ROLL IS Y-AXIS
         YawPitchRollAngles robotOrientation = imu.getRobotYawPitchRollAngles();
         //i wanna see if the angles update in real time while the robot moves :D
-        double heading = robotOrientation.getYaw(AngleUnit.DEGREES);
         telemetry.addData("Yaw - Rotation About Z - Axis", robotOrientation.getYaw(AngleUnit.DEGREES));
         telemetry.addData("Pitch - Rotation about X - Axis", robotOrientation.getPitch(AngleUnit.DEGREES));
         telemetry.addData("Roll - Rotation about Y - Axis", robotOrientation.getRoll(AngleUnit.DEGREES));
         telemetry.addData("Yaw - Rotatioin About Z - Axis in Radians", robotOrientation.getYaw(AngleUnit.RADIANS));
-        //it says down here that the heading is imu.getAngularOrientation().firstAngle, therefore I will try to use BHI260 firstAngle too.
-        //double heading = -imu.getAngularOrientation().firstAngle;
-        //double heading = -imu.getRobotOrientation(
-        //        AxesReference.INTRINSIC,
-        //        AxesOrder.ZYX, //the first angle in the order is the yaw
-/*DEG DIDNT WORK I WANNA TEST RADIANS */  // AngleUnit.RADIANS //mecanumDrive.driveFieldCentric() converts it to radians in the code, and requires it to be in deg
-        //).firstAngle; //IT IS CONFIRMED THROUGH THE SS IN DISCORD THAT THE ANGLES ARE **AROUND** THE AXIS, THEREFORE AROUND THE Z AXIS WILL BE THE HEADING
+
+        double heading = robotOrientation.getYaw(AngleUnit.DEGREES);
 
         mecanumDrive.driveFieldCentric(
                 //Joystick inputs range from -1.0D to 1.0D

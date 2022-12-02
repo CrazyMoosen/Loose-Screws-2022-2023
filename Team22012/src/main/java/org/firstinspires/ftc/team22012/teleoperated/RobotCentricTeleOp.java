@@ -14,6 +14,7 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
 import org.firstinspires.ftc.team22012.universal.subsystems.ArmSubsystem;
 import org.firstinspires.ftc.team22012.universal.subsystems.ClawSubsystem;
+import org.firstinspires.ftc.team22012.universal.subsystems.DriveSubsystem;
 
 @TeleOp(name="RobotCentric", group = "Drive Modes")
 public class RobotCentricTeleOp extends OpMode {
@@ -38,6 +39,7 @@ public class RobotCentricTeleOp extends OpMode {
      */
     //private ArmSubsystem arm;
     private ClawSubsystem claw;
+    private DriveSubsystem driveOdometry;
 
     @Override
     public void init() {
@@ -50,6 +52,7 @@ public class RobotCentricTeleOp extends OpMode {
         shreyController = new GamepadEx(gamepad1);
         //monishController = new GamepadEx(gamepad2);
         claw = new ClawSubsystem(hardwareMap);
+        driveOdometry = new DriveSubsystem(hardwareMap);
         //arm = new (hardwareMap);
     }
 
@@ -70,5 +73,9 @@ public class RobotCentricTeleOp extends OpMode {
         if (shreyController.isDown(GamepadKeys.Button.Y)) {
             claw.release(shreyController.getRightY());
         }
+        telemetry.addData("X Pos According to Odometry", driveOdometry.m_odometry.getPoseMeters().getX());
+        telemetry.addData("Y Pos According to Odometry", driveOdometry.m_odometry.getPoseMeters().getY());
+
+        telemetry.update();
     }
 }
