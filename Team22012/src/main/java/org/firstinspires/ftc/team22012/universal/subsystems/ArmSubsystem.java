@@ -10,26 +10,23 @@ public class ArmSubsystem extends SubsystemBase {
     //the position of the linear slide
     double position;
 
-    public ArmSubsystem(HardwareMap hardwareMap) {
-        linearSlideMotor1 = hardwareMap.get(Motor.class, "S1");
-        position = 0;
-
-    }
-
-    public void move(double value) {
-
-    }
-
-    public double getPosition() {
-        return position;
-    }
-
-    public void completeExtend(){
-
-    }
-
-    public void completeRetract(){
-
-    }
+//    public ArmSubsystem(HardwareMap hardwareMap) {
+//        linearSlideMotor1 = hardwareMap.get(Motor.class, "linearSlideMotor1");
+//        position = 0;
+//
+//    }
+//
+//    public void moveup() {
+//        linearSlideMotor1.set(0.3);
+//    }
+//    public void movedown() {
+//        linearSlideMotor1.set(-0.3);
+//    }
+//    public void stop() {
+//        linearSlideMotor1.set(0);
+//    }
+//    public double getPosition() {
+//        return position;
+//    }
 
 }

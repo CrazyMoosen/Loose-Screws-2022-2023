@@ -29,6 +29,7 @@ public class RobotCentricTeleOp extends OpMode {
     protected double maxOutput = kDefaultMaxSpeed;
 
     private Motor fL, fR, bL, bR;
+    Motor.Encoder fLEncoder, fREncoder, bLEncoder, bREncoder;
     private MecanumDrive mecanumDrive;
     private GamepadEx shreyController;
     //private GamepadEx monishController;
@@ -37,7 +38,7 @@ public class RobotCentricTeleOp extends OpMode {
      * and finalize the {@link ClawSubsystem} and {@link ArmSubsystem} hardware
      * classes.
      */
-    //private ArmSubsystem arm;
+    private ArmSubsystem arm;
     private ClawSubsystem claw;
     private DriveSubsystem driveOdometry;
 
@@ -48,12 +49,15 @@ public class RobotCentricTeleOp extends OpMode {
         bL = new Motor(hardwareMap, "bL", Motor.GoBILDA.RPM_312);
         bR = new Motor(hardwareMap, "bR", Motor.GoBILDA.RPM_312);
         mecanumDrive = new MecanumDrive(fL, fR, bL, bR);
-
+        fLEncoder = fL.encoder;
+        bLEncoder = bL.encoder;
+        fREncoder = fR.encoder;
+        bREncoder = bR.encoder;
         shreyController = new GamepadEx(gamepad1);
         //monishController = new GamepadEx(gamepad2);
         claw = new ClawSubsystem(hardwareMap);
         driveOdometry = new DriveSubsystem(hardwareMap);
-        //arm = new (hardwareMap);
+        //arm = new ArmSubsystem(hardwareMap);
     }
 
     @Override
@@ -67,12 +71,17 @@ public class RobotCentricTeleOp extends OpMode {
                 -shreyController.getLeftY()*0.45*speedMultiplier,
                 -shreyController.getRightX()*0.45*speedMultiplier
         );
-        if (shreyController.isDown(GamepadKeys.Button.B)) {
             claw.close(shreyController.getRightY());
-        }
-        if (shreyController.isDown(GamepadKeys.Button.Y)) {
-            claw.release(shreyController.getRightY());
-        }
+//            if (shreyController.isDown(GamepadKeys.Button.X)){
+//                arm.movedown();
+//            } else{
+//                arm.stop();
+//            }
+//             if (shreyController.isDown(GamepadKeys.Button.B)){
+//            arm.moveup();
+//             }else{
+//                 arm.stop();
+//             }
         telemetry.addData("X Pos According to Odometry", driveOdometry.m_odometry.getPoseMeters().getX());
         telemetry.addData("Y Pos According to Odometry", driveOdometry.m_odometry.getPoseMeters().getY());
 
