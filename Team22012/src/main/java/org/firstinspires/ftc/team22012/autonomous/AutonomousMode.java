@@ -142,8 +142,8 @@ public class AutonomousMode extends LinearOpMode{
         waitForStart();
 
         if (opModeIsActive()) {
-            robot.moveToPos(robot.getX() + 10, robot.getY());
-            while (opModeIsActive()) {
+            robot.moveToPos(robot.getX(), robot.getY()+7);
+            while (sleeveColor.equals(SignalSleeveColor.NONE)) {
                 //vuforia.rgb represents the image/frame given by the camera
                 if (vuforia.rgb != null) {
 
@@ -250,14 +250,28 @@ public class AutonomousMode extends LinearOpMode{
                 }
                 telemetry.addData("Percentage of color", percent);
                 telemetry.update();
-
+                robot.moveToPos(robot.getX(), robot.getY()-7);
                 //move robot when detected signal sleeve
 
-
+                park(26, 0);
             }
         }
     }
-
+    public void park(int positionX, int positionY){
+        if (sleeveColor.equals(SignalSleeveColor.GREEN)){
+            robot.moveToPos(-2, -2);
+            robot.moveToPos(positionX%12, positionY%12);
+            robot.moveToPos(30-positionX, 48-positionY);
+        } else if (sleeveColor.equals(SignalSleeveColor.YELLOW)){
+            robot.moveToPos(-2, -2);
+            robot.moveToPos(positionX%12, positionY%12);
+            robot.moveToPos(0-positionX, 48-positionY);
+        } else if (sleeveColor.equals(SignalSleeveColor.PURPLE)){
+            robot.moveToPos(-2, -2);
+            robot.moveToPos(positionX%12, positionY%12);
+            robot.moveToPos(60-positionX, 48-positionY);
+        }
+    }
     /**
      * Initialize the Vuforia localization engine.
      */
