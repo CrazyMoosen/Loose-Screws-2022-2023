@@ -46,10 +46,10 @@ public class DriveSubsystem extends SubsystemBase {
         imu.resetYaw();
 
         //substitute these values with the numbers in meters with how far away the wheels are from the center of the robot
-        Translation2d m_frontLeftLocation = new Translation2d(0.381, 0.381);
-        Translation2d m_frontRightLocation = new Translation2d(0.381, -0.381);
-        Translation2d m_backLeftLocation = new Translation2d(-0.381, 0.381);
-        Translation2d m_backRightLocation = new Translation2d(-0.381, -0.381);
+        Translation2d m_frontLeftLocation = new Translation2d(0.133, 0.185);
+        Translation2d m_frontRightLocation = new Translation2d(0.133, -0.185);
+        Translation2d m_backLeftLocation = new Translation2d(-0.133, 0.185);
+        Translation2d m_backRightLocation = new Translation2d(-0.133, -0.185);
 
         // Creating my kinematics object using the wheel locations.
         m_kinematics = new MecanumDriveKinematics(

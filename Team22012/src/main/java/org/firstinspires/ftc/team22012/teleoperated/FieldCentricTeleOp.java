@@ -60,7 +60,7 @@ public class FieldCentricTeleOp extends OpMode {
         telemetry.addData("Yaw - Rotation About Z - Axis", robotOrientation.getYaw(AngleUnit.DEGREES));
         telemetry.addData("Pitch - Rotation about X - Axis", robotOrientation.getPitch(AngleUnit.DEGREES));
         telemetry.addData("Roll - Rotation about Y - Axis", robotOrientation.getRoll(AngleUnit.DEGREES));
-        telemetry.addData("Yaw - Rotatioin About Z - Axis in Radians", robotOrientation.getYaw(AngleUnit.RADIANS));
+        telemetry.addData("Yaw - Rotation About Z - Axis in Radians", robotOrientation.getYaw(AngleUnit.RADIANS));
 
         double heading = robotOrientation.getYaw(AngleUnit.DEGREES);
 

@@ -82,8 +82,8 @@ public class RobotCentricTeleOp extends OpMode {
 //             }else{
 //                 arm.stop();
 //             }
-        telemetry.addData("X Pos According to Odometry", driveOdometry.m_odometry.getPoseMeters().getX());
-        telemetry.addData("Y Pos According to Odometry", driveOdometry.m_odometry.getPoseMeters().getY());
+        telemetry.addData("X Pos According to Odometry", driveOdometry.m_odometry.getPoseMeters().getX() * 39.3701);
+        telemetry.addData("Y Pos According to Odometry", driveOdometry.m_odometry.getPoseMeters().getY() * 39.3701);
 
         telemetry.update();
     }
