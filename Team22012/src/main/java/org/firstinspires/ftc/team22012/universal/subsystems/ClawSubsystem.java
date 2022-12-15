@@ -5,42 +5,46 @@ import com.arcrobotics.ftclib.hardware.ServoEx;
 import com.arcrobotics.ftclib.hardware.SimpleServo;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
+import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
+
 public class ClawSubsystem extends SubsystemBase {
-    private ServoEx servo1, servo2;
-    HardwareMap hardwareMap;
-    private double rotatedby1=240;
-    private double rotatedby2 = 60;
-    //initialize claw
-    public ClawSubsystem(HardwareMap hardwareMap) {
-        this.hardwareMap = hardwareMap;
-         servo1 = new SimpleServo(
-                hardwareMap, "servo1", 0, 300
-        );
-         servo2 = new SimpleServo(
-                hardwareMap, "servo2", 0, 300
-        );
+    private final ServoEx leftServo, rightServo;
+
+    //position of the claw: 0 is fully open and 180 is fully closed
+    int position = 0;
+
+    public ClawSubsystem(ServoEx leftServo, ServoEx rightServo) {
+        this.leftServo = leftServo;
+        this.rightServo = rightServo;
+
+        leftServo.setRange(0, 180, AngleUnit.DEGREES);
+
+        //these two set the servos to the open position
+        leftServo.turnToAngle(0);
+        rightServo.turnToAngle(0);
     }
-    //function that closes the gripper, parameter is the value taken to grab the cone
-    public void close(double value) {
-        servo1.setInverted(true);
-        //servo one starts at 240
-        //servo two starts at 60
-        if (rotatedby1<=250 && rotatedby1>=140) {
-            servo1.rotateByAngle(value);
-            rotatedby1 = rotatedby1+value;
-        } else {
-            servo1.rotateByAngle(-value);
-            rotatedby1 = rotatedby1-value;
+
+    public double getLeftServoAngle() {
+        return leftServo.getAngle(AngleUnit.DEGREES);
+    }
+    public double getRightServoAngle() {
+        return rightServo.getAngle(AngleUnit.DEGREES);
+    }
+
+    public void move(int endPos) {
+        //close the claw
+        if (endPos >= 0) {
+            leftServo.turnToAngle(endPos, AngleUnit.DEGREES);
+            rightServo.turnToAngle(endPos, AngleUnit.DEGREES);
+            position = endPos;
         }
-        if (rotatedby2>=50 && rotatedby2<=160) {
-            servo2.rotateByAngle(value);
-            rotatedby2 = rotatedby2+value;
-        }else {
-            servo2.rotateByAngle(-value);
-            rotatedby2 = rotatedby2-value;
+        else {
+            move(0);
         }
     }
 
-    //function that releases the cone from the grip of the gripper
+    public int getPosition() {
+        return position;
+    }
 
 }

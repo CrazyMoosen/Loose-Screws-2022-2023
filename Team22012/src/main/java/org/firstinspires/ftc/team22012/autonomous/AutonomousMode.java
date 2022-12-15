@@ -58,7 +58,7 @@ public class AutonomousMode extends LinearOpMode{
     final double degPerSec = 150;
 
     //testing this just means the robot will start off at Blue 1 position and will face toward the red side.
-    private final RobotPosition robot = new RobotPosition(hardwareMap, 0, 26, Direction.Right);
+    private final RobotPosition robot = new RobotPosition(fL, fR, bL, bR, 0, 26, Direction.Right);
     /**
      * Specify the source for the Tensor Flow Model.
      * If the TensorFlowLite object model is included in the Robot Controller App as an "asset",
@@ -139,8 +139,8 @@ public class AutonomousMode extends LinearOpMode{
 
         if (opModeIsActive()) {
             //this should do the same thing as below
-            //robot.moveToPos(robot.getX() + 10, robot.getY());
-            moveLinear(0.6, 10);
+            robot.moveToPosManual(robot.getX() + 10, robot.getY());
+            //moveLinear(0.6, 10);
             //moveLinear(-0.6, stoppingDistance);
             while (opModeIsActive()) {
                 //vuforia.rgb represents the image/frame given by the camera

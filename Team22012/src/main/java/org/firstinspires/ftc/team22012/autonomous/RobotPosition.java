@@ -1,8 +1,9 @@
 package org.firstinspires.ftc.team22012.autonomous;
 
+import static java.lang.Math.abs;
+
 import com.arcrobotics.ftclib.drivebase.MecanumDrive;
 import com.arcrobotics.ftclib.hardware.motors.Motor;
-import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 
@@ -10,14 +11,19 @@ public class RobotPosition extends Position {
     Motor fL, fR, bL, bR;
     MecanumDrive mecanumDrive;
     Motor.Encoder fLEncoder, fREncoder, bLEncoder, bREncoder;
-    HardwareMap hardwareMap;
     Direction direction;
-    public RobotPosition(HardwareMap hardwareMap, double x, double y, Direction direction) {
+
+    final double speed = 55; // In inches/sec
+    final double stoppingDistance = 2.1; // In inches, the distance it takes to stop the robot travelling
+    // at the power of 0.6
+    final double degPerSec = 150;
+
+    public RobotPosition(Motor fL, Motor fR, Motor bL, Motor bR, double x, double y, Direction direction) {
         super(x, y);
-        fL = new Motor(hardwareMap, "fL", Motor.GoBILDA.RPM_312);
-        fR = new Motor(hardwareMap, "fR", Motor.GoBILDA.RPM_312);
-        bL = new Motor(hardwareMap, "bL", Motor.GoBILDA.RPM_312);
-        bR = new Motor(hardwareMap, "bR", Motor.GoBILDA.RPM_312);
+        this.fL = fL;
+        this.fR = fR;
+        this.bL = bL;
+        this.bR = bR;
 
         mecanumDrive = new MecanumDrive(fL, fR, bL, bR);
 
@@ -25,7 +31,6 @@ public class RobotPosition extends Position {
         bLEncoder = bL.encoder;
         fREncoder = fR.encoder;
         bREncoder = bR.encoder;
-        this.hardwareMap = hardwareMap;
         this.direction = direction;
 
     }
@@ -224,5 +229,80 @@ public class RobotPosition extends Position {
 
         x = endX;
         y = endY;
+    }
+
+
+    public void moveToPosManual(double endX, double endY) {
+        moveAlongX(endX);
+        moveAlongY(endY);
+    }
+
+    //moves the robot along the x-axis
+    public void moveAlongX(double endX) {
+        double magnitude = (endX - x)/Math.abs(endX - x);
+        if (direction == Direction.Right) {
+            moveLinear(magnitude * 0.6, Math.abs(endX - x));
+        }
+        if (direction == Direction.Left) {
+            moveLinear(-magnitude * 0.6, Math.abs(endX - x));
+        }
+        if (direction == Direction.Up) {
+            strafeLinear(magnitude * 0.6, Math.abs(endX - x));
+        }
+        if (direction == Direction.Down) {
+            strafeLinear(-magnitude * 0.6, Math.abs(endX - x));
+        }
+        setX(endX);
+    }
+
+    //moves the robot along the y-axis
+    public void moveAlongY(double endY) {
+        double magnitude = (endY - y)/Math.abs(endY - y);
+        double dist = Math.abs(endY - y);
+        if (direction == Direction.Right) {
+            strafeLinear(magnitude * 0.6, dist);
+        }
+        if (direction == Direction.Left) {
+            strafeLinear(-magnitude * 0.6, dist);
+        }
+        if (direction == Direction.Up) {
+            moveLinear(-magnitude * 0.6, dist);
+        }
+        if (direction == Direction.Down) {
+            moveLinear(magnitude * 0.6, dist);
+        }
+        setY(endY);
+    }
+
+
+    public void moveLinear(double power, double distance) {
+        ElapsedTime elapsedTime = new ElapsedTime();
+        // This code will move backward if the power is negative
+        // Whenever you call this code add another moveLinear thing for the opposite power and
+        // stopping distance
+        double time = distance / (speed * abs(power));
+        elapsedTime.reset();
+        while (elapsedTime.milliseconds() < time * 1000) {
+            fL.set(-power);
+            fR.set(power);
+            bL.set(-power);
+            bR.set(power);
+        }
+        fL.set(0);
+        fR.set(0);
+        bR.set(0);
+        bL.set(0);
+    }
+
+    // positive power = strafe right
+    public void strafeLinear(double power, double distance) {
+        ElapsedTime elapsedTime = new ElapsedTime();
+        double time = distance / (speed * abs(power));
+        elapsedTime.reset();
+        MecanumDrive mecanumDrive = new MecanumDrive(fL, fR, bL, bR);
+        while (elapsedTime.milliseconds() < time * 1000) {
+            mecanumDrive.driveRobotCentric(-power, 0, 0);
+        }
+        mecanumDrive.driveRobotCentric(0, 0, 0);
     }
 }
