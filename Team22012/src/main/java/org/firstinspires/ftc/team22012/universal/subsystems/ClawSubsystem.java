@@ -8,6 +8,8 @@ import com.qualcomm.robotcore.hardware.HardwareMap;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 
 public class ClawSubsystem extends SubsystemBase {
+    //trust this is all theoretical the probability this works is 5%
+
     private final ServoEx leftServo, rightServo;
 
     //position of the claw: 0 is fully open and 180 is fully closed
@@ -18,6 +20,7 @@ public class ClawSubsystem extends SubsystemBase {
         this.rightServo = rightServo;
 
         leftServo.setRange(0, 180, AngleUnit.DEGREES);
+        rightServo.setRange(0, 180, AngleUnit.DEGREES);
 
         //these two set the servos to the open position
         leftServo.turnToAngle(0);

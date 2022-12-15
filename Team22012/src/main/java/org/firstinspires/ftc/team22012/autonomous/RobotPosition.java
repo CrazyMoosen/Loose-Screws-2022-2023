@@ -239,39 +239,43 @@ public class RobotPosition extends Position {
 
     //moves the robot along the x-axis
     public void moveAlongX(double endX) {
-        double magnitude = (endX - x)/Math.abs(endX - x);
-        if (direction == Direction.Right) {
-            moveLinear(magnitude * 0.6, Math.abs(endX - x));
+        if (endX != x) {
+            double magnitude = (endX - x) / Math.abs(endX - x);
+            if (direction == Direction.Right) {
+                moveLinear(magnitude * 0.6, Math.abs(endX - x));
+            }
+            if (direction == Direction.Left) {
+                moveLinear(-magnitude * 0.6, Math.abs(endX - x));
+            }
+            if (direction == Direction.Up) {
+                strafeLinear(magnitude * 0.6, Math.abs(endX - x));
+            }
+            if (direction == Direction.Down) {
+                strafeLinear(-magnitude * 0.6, Math.abs(endX - x));
+            }
+            setX(endX);
         }
-        if (direction == Direction.Left) {
-            moveLinear(-magnitude * 0.6, Math.abs(endX - x));
-        }
-        if (direction == Direction.Up) {
-            strafeLinear(magnitude * 0.6, Math.abs(endX - x));
-        }
-        if (direction == Direction.Down) {
-            strafeLinear(-magnitude * 0.6, Math.abs(endX - x));
-        }
-        setX(endX);
     }
 
     //moves the robot along the y-axis
     public void moveAlongY(double endY) {
-        double magnitude = (endY - y)/Math.abs(endY - y);
-        double dist = Math.abs(endY - y);
-        if (direction == Direction.Right) {
-            strafeLinear(magnitude * 0.6, dist);
+        if (endY != y) {
+            double magnitude = (endY - y) / Math.abs(endY - y);
+            double dist = Math.abs(endY - y);
+            if (direction == Direction.Right) {
+                strafeLinear(magnitude * 0.6, dist);
+            }
+            if (direction == Direction.Left) {
+                strafeLinear(-magnitude * 0.6, dist);
+            }
+            if (direction == Direction.Up) {
+                moveLinear(-magnitude * 0.6, dist);
+            }
+            if (direction == Direction.Down) {
+                moveLinear(magnitude * 0.6, dist);
+            }
+            setY(endY);
         }
-        if (direction == Direction.Left) {
-            strafeLinear(-magnitude * 0.6, dist);
-        }
-        if (direction == Direction.Up) {
-            moveLinear(-magnitude * 0.6, dist);
-        }
-        if (direction == Direction.Down) {
-            moveLinear(magnitude * 0.6, dist);
-        }
-        setY(endY);
     }
 
 
