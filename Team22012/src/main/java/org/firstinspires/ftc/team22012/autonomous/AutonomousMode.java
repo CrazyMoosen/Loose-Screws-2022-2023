@@ -39,6 +39,7 @@ public class AutonomousMode extends LinearOpMode{
         NONE;
     }
 
+    //Region of Interest that has the signal cone
     private final Rect ROIRect = new Rect(new Point(75, 0), new Point(480, 410));
 
     //the variable used to hold the color that the camera will detect
@@ -59,15 +60,6 @@ public class AutonomousMode extends LinearOpMode{
 
     //testing this just means the robot will start off at Blue 1 position and will face toward the red side.
     private final RobotPosition robot = new RobotPosition(fL, fR, bL, bR, 0, 26, Direction.Right);
-    /**
-     * Specify the source for the Tensor Flow Model.
-     * If the TensorFlowLite object model is included in the Robot Controller App as an "asset",
-     * the OpMode must to load it using loadModelFromAsset().  However, if a team generated model
-     * has been downloaded to the Robot Controller's SD FLASH memory, it must to be loaded using loadModelFromFile()
-     * Here we assume it's an Asset. Also see method initTfod() below .
-     */
-    private static final String TFOD_MODEL_ASSET = "PowerPlay.tflite";
-    //private static final String TFOD_MODEL_FILE  = "/sdcard/FIRST/tflitemodels/CustomTeamModel.tflite";
 
     int run = 0;
     boolean moved = false;
@@ -92,12 +84,6 @@ public class AutonomousMode extends LinearOpMode{
      */
     private VuforiaLocalizerImplSubclass vuforia;
 
-    /**
-     * {@link #tfod} is the variable we will use to store our instance of the TensorFlow Object
-     * Detection engine.
-     */
-    private TFObjectDetector tfod;
-
     @Override
     public void runOpMode() {
         //Initializes all the motors
@@ -120,20 +106,21 @@ public class AutonomousMode extends LinearOpMode{
          * Activate TensorFlow Object Detection before we wait for the start command.
          * Do it here so that the Camera Stream window will have the TensorFlow annotations visible.
          */
-        if (tfod != null) {
-            tfod.activate();
+//        if (tfod != null) {
+//            tfod.activate();
+//
+//            // The TensorFlow software will scale the input images from the camera to a lower resolution.
+//            // This can result in lower detection accuracy at longer distances (> 55cm or 22").
+//            // If your target is at distance greater than 50 cm (20") you can increase the magnification value
+//            // to artificially zoom in to the center of image.  For best results, the "aspectRatio" argument
+//            // should be set to the value of the images used to create the TensorFlow Object Detection model
+//            // (typically 16/9).
+//            tfod.setZoom(1.0, 16.0/9.0);
+//        }
 
-            // The TensorFlow software will scale the input images from the camera to a lower resolution.
-            // This can result in lower detection accuracy at longer distances (> 55cm or 22").
-            // If your target is at distance greater than 50 cm (20") you can increase the magnification value
-            // to artificially zoom in to the center of image.  For best results, the "aspectRatio" argument
-            // should be set to the value of the images used to create the TensorFlow Object Detection model
-            // (typically 16/9).
-            tfod.setZoom(1.0, 16.0/9.0);
-        }
-
-        /** Wait for the game to begin */
         telemetry.addData(">", "Press Play to start op mode");
+        telemetry.addData("X Pos In Robot Position", robot.getX());
+        telemetry.addData("Y Pos In Robot Position", robot.getY());
         telemetry.update();
         waitForStart();
 
@@ -145,7 +132,6 @@ public class AutonomousMode extends LinearOpMode{
             while (opModeIsActive()) {
                 //vuforia.rgb represents the image/frame given by the camera
                 if (vuforia.rgb != null) {
-
                     //converts image to bitmap so that OpenCV can use it to threshold
                     Bitmap bm = Bitmap.createBitmap(vuforia.rgb.getWidth(), vuforia.rgb.getHeight(), Bitmap.Config.RGB_565);
                     bm.copyPixelsFromBuffer(vuforia.rgb.getPixels());
@@ -153,10 +139,6 @@ public class AutonomousMode extends LinearOpMode{
                     //converts bitmap frame to OpenCV Mat class
                     Mat img = new Mat(vuforia.rgb.getHeight(), vuforia.rgb.getWidth(), CvType.CV_8UC3);
                     Utils.bitmapToMat(bm, img);
-
-                    //detects blue
-                    //Scalar blue_lower = new Scalar(90.8333D, 62, 81);
-                    //Scalar blue_upper = new Scalar(128.0833D, 255, 255);
 
                     //Gets the Region Of Interest that includes the Signal Cone based on where the robot starts off during the autonomous period
                     Mat ROI = img.submat(ROIRect);
@@ -209,8 +191,6 @@ public class AutonomousMode extends LinearOpMode{
                         sleeveColor = SignalSleeveColor.NONE;
                         percent = 0;
                     }
-                    //use this for extra help: http://overchargedrobotics.org/wp-content/uploads/2018/08/Advanced-Programming-Vision.pdf
-
                 }
                 if (sleeveColor == SignalSleeveColor.GREEN){
                     telemetry.addData("location is", "green");
@@ -225,7 +205,6 @@ public class AutonomousMode extends LinearOpMode{
                     telemetry.addData("location is", "none");
                 }
                 telemetry.addData("Percentage of color", percent);
-                telemetry.update();
 
                 //move robot when detected signal sleeve
                 if(!moved) {
@@ -258,6 +237,10 @@ public class AutonomousMode extends LinearOpMode{
                     }
                 }
                 run++;
+
+                telemetry.addData("X Pos In Robot Position", robot.getX());
+                telemetry.addData("Y Pos In Robot Position", robot.getY());
+                telemetry.update();
             }
         }
     }
@@ -349,6 +332,8 @@ public class AutonomousMode extends LinearOpMode{
         fR.set(0);
         bR.set(0);
         bL.set(0);
+
+        robot.changeDirection(360-(time*degPerSec));
     }
 
     public void turn(double power, double angle){
@@ -365,6 +350,8 @@ public class AutonomousMode extends LinearOpMode{
         fR.set(0);
         bR.set(0);
         bL.set(0);
+
+        robot.changeDirection(360-angle);
     }
 
     /**
@@ -381,21 +368,4 @@ public class AutonomousMode extends LinearOpMode{
 
         vuforia = new VuforiaLocalizerImplSubclass(parameters);
     }
-
-    /**
-     * Initialize the TensorFlow Object Detection engine.
-     */
-//    private void initTfod() {
-//        int tfodMonitorViewId = hardwareMap.appContext.getResources().getIdentifier(
-//                "tfodMonitorViewId", "id", hardwareMap.appContext.getPackageName());
-//        TFObjectDetector.Parameters tfodParameters = new TFObjectDetector.Parameters(tfodMonitorViewId);
-//        tfodParameters.minResultConfidence = 0.75f;
-//        tfodParameters.isModelTensorFlow2 = true;
-//        tfodParameters.inputSize = 300;
-//        tfod = ClassFactory.getInstance().createTFObjectDetector(tfodParameters, vuforia);
-//
-//        // Use loadModelFromAsset() if the TF Model is built in as an asset by Android Studio
-//        // Use loadModelFromFile() if you have downloaded a custom team model to the Robot Controller's FLASH.
-//        tfod.loadModelFromAsset(TFOD_MODEL_ASSET, LABELS);
-//    }
 }

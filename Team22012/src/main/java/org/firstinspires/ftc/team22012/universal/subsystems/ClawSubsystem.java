@@ -36,13 +36,10 @@ public class ClawSubsystem extends SubsystemBase {
 
     public void move(int endPos) {
         //close the claw
-        if (endPos >= 0) {
+        if (endPos <= 180 && endPos >= 0) {
             leftServo.turnToAngle(endPos, AngleUnit.DEGREES);
             rightServo.turnToAngle(endPos, AngleUnit.DEGREES);
             position = endPos;
-        }
-        else {
-            move(0);
         }
     }
 
