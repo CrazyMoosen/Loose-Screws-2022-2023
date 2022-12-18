@@ -39,8 +39,7 @@ public class RobotCentricTeleOp extends OpMode {
      * classes.
      */
     private ArmSubsystem arm;
-    private ClawSubsystem claw;
-    private DriveSubsystem driveOdometry;
+    private ClawSubsystem claw;;
 
     @Override
     public void init() {
@@ -56,8 +55,7 @@ public class RobotCentricTeleOp extends OpMode {
         shreyController = new GamepadEx(gamepad1);
         monishController = new GamepadEx(gamepad2);
 
-        claw = new ClawSubsystem(new SimpleServo(hardwareMap, "servo1", 0, 180), new SimpleServo(hardwareMap, "servo2", 0, 180));
-        driveOdometry = new DriveSubsystem(hardwareMap);
+        claw = new ClawSubsystem(new SimpleServo(hardwareMap, "servo1", 0, 300), new SimpleServo(hardwareMap, "servo2", 0, 300));
         arm = new ArmSubsystem(new Motor(hardwareMap, "linearSlideMotor1", Motor.GoBILDA.RPM_312));
 
         telemetry.addData("Left Servo Position", claw.getLeftServoAngle());
@@ -69,7 +67,7 @@ public class RobotCentricTeleOp extends OpMode {
     public void loop() {
         double speedMultiplier = 1.0;
         //if shrey presses the A button he can boost the speed of the drivetrain
-        if (shreyController.isDown(GamepadKeys.Button.A)) {
+        if (shreyController.isDown(GamepadKeys.Button.B)) {
             speedMultiplier = 1.5;
         }
         mecanumDrive.driveRobotCentric(
@@ -82,18 +80,21 @@ public class RobotCentricTeleOp extends OpMode {
         if (monishController.isDown(GamepadKeys.Button.B)) { // if monish presses B button the arm moves up
             arm.moveup();
         }
-        else if (monishController.isDown(GamepadKeys.Button.A)){ // else if A button down then arm moves down
+        else if (monishController.isDown(GamepadKeys.Button.X)){ // else if A button down then arm moves down
             arm.movedown();
         }
         else {
             arm.stop(); //else don't move the arm at all
         }
 
-        if (monishController.getRightX() > 0) {
-            claw.move(claw.getPosition()+5);
+        if (monishController.isDown(GamepadKeys.Button.RIGHT_BUMPER)) {
+            claw.closeFully();
         }
-        if (monishController.getRightX() < 0) {
-            claw.move(claw.getPosition()-5);
+        if (monishController.isDown(GamepadKeys.Button.LEFT_BUMPER)) {
+            claw.openFully();
+        }
+        if (monishController.isDown(GamepadKeys.Button.Y)) {
+            claw.closeForBeacon();
         }
 
 

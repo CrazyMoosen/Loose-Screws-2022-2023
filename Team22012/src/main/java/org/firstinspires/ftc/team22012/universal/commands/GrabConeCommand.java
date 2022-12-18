@@ -20,7 +20,7 @@ public class GrabConeCommand extends CommandBase {
 
     @Override
     public void execute() {
-        claw.close(clawValue.getAsDouble());
+//        claw.close(clawValue.getAsDouble());
     }
 
     @Override

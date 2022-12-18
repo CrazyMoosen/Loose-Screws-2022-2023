@@ -97,16 +97,18 @@ public class RobotPosition extends Position {
         // stopping distance
         double time = distance / (speed * abs(power));
         elapsedTime.reset();
-        while (elapsedTime.milliseconds() < time * 1000) {
-            fL.set(-power);
-            fR.set(power);
-            bL.set(-power);
-            bR.set(power);
+       while (elapsedTime.milliseconds() < time * 1000) {
+//            fL.set(-power);
+//            fR.set(power);
+//            bL.set(-power);
+//            bR.set(power);
+        mecanumDrive.driveRobotCentric(0, -0.6, 0);
         }
-        fL.set(0);
-        fR.set(0);
-        bR.set(0);
-        bL.set(0);
+       mecanumDrive.driveRobotCentric(0, 0, 0);
+//        fL.set(0);
+//        fR.set(0);
+//        bR.set(0);
+//        bL.set(0);
     }
 
     // positive power = strafe right

@@ -5,6 +5,8 @@ import static java.lang.Math.abs;
 import android.graphics.Bitmap;
 
 import com.arcrobotics.ftclib.drivebase.MecanumDrive;
+import com.arcrobotics.ftclib.hardware.ServoEx;
+import com.arcrobotics.ftclib.hardware.SimpleServo;
 import com.arcrobotics.ftclib.hardware.motors.Motor;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
@@ -15,6 +17,9 @@ import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
 import org.firstinspires.ftc.robotcore.external.navigation.VuforiaLocalizer;
 import org.firstinspires.ftc.robotcore.external.tfod.Recognition;
 import org.firstinspires.ftc.robotcore.external.tfod.TFObjectDetector;
+import org.firstinspires.ftc.team22012.universal.subsystems.ArmSubsystem;
+import org.firstinspires.ftc.team22012.universal.subsystems.ClawSubsystem;
+import org.firstinspires.ftc.team22012.universal.subsystems.DriveSubsystem;
 import org.firstinspires.ftc.team22012.vision.VuforiaLocalizerImplSubclass;
 import org.opencv.android.Utils;
 import org.opencv.core.Core;
@@ -23,6 +28,7 @@ import org.opencv.core.Mat;
 import org.opencv.core.Point;
 import org.opencv.core.Rect;
 import org.opencv.core.Scalar;
+import org.opencv.imgcodecs.Imgcodecs;
 import org.opencv.imgproc.Imgproc;
 
 import java.util.List;
@@ -40,7 +46,7 @@ public class AutonomousMode extends LinearOpMode{
     }
 
     //Region of Interest that has the signal cone
-    private final Rect ROIRect = new Rect(new Point(75, 0), new Point(480, 410));
+    private final Rect ROIRect = new Rect(new Point(250, 0), new Point(640, 410));
 
     //the variable used to hold the color that the camera will detect
     private SignalSleeveColor sleeveColor;
@@ -59,7 +65,17 @@ public class AutonomousMode extends LinearOpMode{
     final double degPerSec = 150;
 
     //testing this just means the robot will start off at Blue 1 position and will face toward the red side.
-    private final RobotPosition robot = new RobotPosition(fL, fR, bL, bR, 0, 26, Direction.Right);
+    private RobotPosition robot;
+
+    private static final String TFOD_MODEL_ASSET = "PowerPlay.tflite";
+    //private static final String TFOD_MODEL_FILE  = "/sdcard/FIRST/tflitemodels/CustomTeamModel.tflite";
+
+    //random stuff dont pay attention to this
+    private static final String[] LABELS = {
+            "1 Bolt",
+            "2 Bulb",
+            "3 Panel"
+    };
 
     int run = 0;
     boolean moved = false;
@@ -83,7 +99,9 @@ public class AutonomousMode extends LinearOpMode{
      * localization engine.
      */
     private VuforiaLocalizerImplSubclass vuforia;
-
+    private TFObjectDetector tfod;
+    private ClawSubsystem claw;
+    private ArmSubsystem arm;
     @Override
     public void runOpMode() {
         //Initializes all the motors
@@ -91,32 +109,34 @@ public class AutonomousMode extends LinearOpMode{
         fR = new Motor(hardwareMap, "fR", Motor.GoBILDA.RPM_312);
         bL = new Motor(hardwareMap, "bL", Motor.GoBILDA.RPM_312);
         bR = new Motor(hardwareMap, "bR", Motor.GoBILDA.RPM_312);
-
-        //sets the distance per pulse so we can move the robot accordingly
+        sleeveColor = SignalSleeveColor.NONE;
+        claw = new ClawSubsystem(new SimpleServo(hardwareMap, "servo1", 0, 300), new SimpleServo(hardwareMap, "servo2", 0, 300));
+        arm = new ArmSubsystem(new Motor(hardwareMap, "linearSlideMotor1", Motor.GoBILDA.RPM_312));        //sets the distance per pulse so we can move the robot accordingly
         fL.setDistancePerPulse(18);
         fR.setDistancePerPulse(18);
         bR.setDistancePerPulse(18);
         bL.setDistancePerPulse(18);
         // The TFObjectDetector uses the camera frames from the VuforiaLocalizer, so we create that
         // first.
+        robot = new RobotPosition(fL, fR, bL, bR, 0, 26, Direction.Right);
         initVuforia();
-//        initTfod();
+        initTfod();
 
         /**
          * Activate TensorFlow Object Detection before we wait for the start command.
          * Do it here so that the Camera Stream window will have the TensorFlow annotations visible.
          */
-//        if (tfod != null) {
-//            tfod.activate();
-//
-//            // The TensorFlow software will scale the input images from the camera to a lower resolution.
-//            // This can result in lower detection accuracy at longer distances (> 55cm or 22").
-//            // If your target is at distance greater than 50 cm (20") you can increase the magnification value
-//            // to artificially zoom in to the center of image.  For best results, the "aspectRatio" argument
-//            // should be set to the value of the images used to create the TensorFlow Object Detection model
-//            // (typically 16/9).
-//            tfod.setZoom(1.0, 16.0/9.0);
-//        }
+        if (tfod != null) {
+            tfod.activate();
+
+            // The TensorFlow software will scale the input images from the camera to a lower resolution.
+            // This can result in lower detection accuracy at longer distances (> 55cm or 22").
+            // If your target is at distance greater than 50 cm (20") you can increase the magnification value
+            // to artificially zoom in to the center of image.  For best results, the "aspectRatio" argument
+            // should be set to the value of the images used to create the TensorFlow Object Detection model
+            // (typically 16/9).
+            tfod.setZoom(1.0, 16.0 / 9.0);
+        }
 
         telemetry.addData(">", "Press Play to start op mode");
         telemetry.addData("X Pos In Robot Position", robot.getX());
@@ -125,10 +145,11 @@ public class AutonomousMode extends LinearOpMode{
         waitForStart();
 
         if (opModeIsActive()) {
-            //this should do the same thing as below
-            robot.moveToPosManual(robot.getX() + 10, robot.getY());
-            //moveLinear(0.6, 10);
-            //moveLinear(-0.6, stoppingDistance);
+            arm.movedown();
+            arm.stop();
+            claw.closeFully();
+            moveLinear(0.6, 10);
+            moveLinear(-0.6, stoppingDistance);
             while (opModeIsActive()) {
                 //vuforia.rgb represents the image/frame given by the camera
                 if (vuforia.rgb != null) {
@@ -167,6 +188,9 @@ public class AutonomousMode extends LinearOpMode{
                     Mat thresholdedForGreen = new Mat();
                     Core.inRange(ROIHsv, green_lower, green_upper, thresholdedForGreen);
 
+                    String filePath = "sdcard/FIRST/roiPng.png";
+                    Imgcodecs.imwrite(filePath, ROI);
+
                     long whitePixelsGreen = Core.countNonZero(thresholdedForGreen);
                     long whitePixelsYellow = Core.countNonZero(thresholdedForYellow);
                     long whitePixelsPurple = Core.countNonZero(thresholdedForPurple);
@@ -175,76 +199,72 @@ public class AutonomousMode extends LinearOpMode{
                     double yellowValuePercent = Core.sumElems(thresholdedForYellow).val[0] / ROIRect.area() / 255;
                     double purpleValuePercent = Core.sumElems(thresholdedForPurple).val[0] / ROIRect.area() / 255;
 
-                    if (whitePixelsPurple>whitePixelsYellow && whitePixelsPurple>whitePixelsGreen && Math.round(purpleValuePercent*100) >= 20) {
+                    if (whitePixelsPurple > whitePixelsYellow && whitePixelsPurple > whitePixelsGreen && Math.round(purpleValuePercent * 100) >= 20) {
                         sleeveColor = SignalSleeveColor.PURPLE;
-                        percent = Math.round(purpleValuePercent*100);
-                    }
-                    else if (whitePixelsYellow>whitePixelsPurple && whitePixelsYellow>whitePixelsGreen && Math.round(yellowValuePercent*100) >= 20) {
+                        percent = Math.round(purpleValuePercent * 100);
+                    } else if (whitePixelsYellow > whitePixelsPurple && whitePixelsYellow > whitePixelsGreen && Math.round(yellowValuePercent * 100) >= 20) {
                         sleeveColor = SignalSleeveColor.YELLOW;
                         percent = Math.round(yellowValuePercent * 100);
-                    }
-                    else if (whitePixelsGreen>whitePixelsPurple && whitePixelsGreen>whitePixelsYellow && Math.round(greenValuePercent*100) >= 20) {
+                    } else if (whitePixelsGreen > whitePixelsPurple && whitePixelsGreen > whitePixelsYellow && Math.round(greenValuePercent * 100) >= 20) {
                         sleeveColor = SignalSleeveColor.GREEN;
                         percent = Math.round(greenValuePercent * 100);
-                    }
-                    else {
+                    } else {
                         sleeveColor = SignalSleeveColor.NONE;
                         percent = 0;
                     }
                 }
-                if (sleeveColor == SignalSleeveColor.GREEN){
+                if (sleeveColor == SignalSleeveColor.GREEN) {
                     telemetry.addData("location is", "green");
                 }
-                if (sleeveColor == SignalSleeveColor.PURPLE){
+                if (sleeveColor == SignalSleeveColor.PURPLE) {
                     telemetry.addData("location is", "purple");
                 }
-                if (sleeveColor == SignalSleeveColor.YELLOW){
+                if (sleeveColor == SignalSleeveColor.YELLOW) {
                     telemetry.addData("location is", "yellow");
                 }
-                if (sleeveColor == SignalSleeveColor.NONE){
+                if (sleeveColor == SignalSleeveColor.NONE) {
                     telemetry.addData("location is", "none");
                 }
                 telemetry.addData("Percentage of color", percent);
-
-                //move robot when detected signal sleeve
-                if(!moved) {
-                    if (run < 10 || sleeveColor != SignalSleeveColor.NONE) {
-                        if (sleeveColor == SignalSleeveColor.GREEN) {
-                            moveLinear(0.6, 9);
-                            moveLinear(-0.6, stoppingDistance);
-                            moved = true;
-                        }
-                        if (sleeveColor == SignalSleeveColor.PURPLE) {
-                            moveLinear(-0.6, 10);
-                            moveLinear(0.6, stoppingDistance);
-                            strafeLinear(0.6, 23);
-                            strafeLinear(-0.6, stoppingDistance);
-                            moveLinear(0.6, 30);
-                            moveLinear(-0.6, stoppingDistance);
-                              moved = true;
-                        }
-                        if (sleeveColor == SignalSleeveColor.YELLOW) {
-                            moveLinear(-0.6, 10);
-                            moveLinear(0.6, stoppingDistance);
-                            strafeLinear(-0.6, 23);
-                            strafeLinear(0.6, stoppingDistance);
-                            moveLinear(0.6, 30);
-                            moveLinear(-0.6, stoppingDistance);
-                            moved = true;
-                        }
-                        if (sleeveColor == SignalSleeveColor.NONE) {
-                        }
-                    }
+                if (!moved && sleeveColor!=SignalSleeveColor.NONE) {
+                    park();
+                    moved = true;
                 }
-                run++;
-
                 telemetry.addData("X Pos In Robot Position", robot.getX());
                 telemetry.addData("Y Pos In Robot Position", robot.getY());
                 telemetry.update();
             }
         }
     }
-
+    public void scoreMidJunction(){
+        claw.closeFully();
+        robot.moveToPosManual(36, 26);
+        robot.moveToPosManual(34, 38);
+        arm.moveup();
+        robot.moveToPosManual(36,38);
+        claw.openFully();
+        arm.stop();
+    }
+    public void park(){
+        if(sleeveColor==SignalSleeveColor.GREEN) {
+            moveLinear(0.6, 18);
+            moveLinear(-0.6, stoppingDistance);
+        }else if(sleeveColor==SignalSleeveColor.PURPLE){
+            moveLinear(-0.6, 7);
+            strafeLinear(0.6, 28);
+            strafeLinear(-0.6, stoppingDistance);
+            moveLinear(0.6, 30);
+            moveLinear(-0.6, stoppingDistance);
+        } else if(sleeveColor==SignalSleeveColor.YELLOW){
+            moveLinear(-0.6, 7);
+            strafeLinear(-0.6, 38);
+            strafeLinear(0.6, stoppingDistance);
+            moveLinear(0.6, 30);
+            moveLinear(-0.6, stoppingDistance);
+        } else{
+            moveLinear(0.6, 20);
+        }
+    }
     public void moveLinear(double power, double distance) {
         // This code will move backward if the power is negative
         // Whenever you call this code add another moveLinear thing for the opposite power and
@@ -261,7 +281,8 @@ public class AutonomousMode extends LinearOpMode{
         fR.set(0);
         bR.set(0);
         bL.set(0);
-
+        elapsedTime.reset();
+        while (elapsedTime.milliseconds()<=100){}
         switch(robot.direction) {
             case Up:
                 robot.setY(robot.getY() - distance);
@@ -287,6 +308,9 @@ public class AutonomousMode extends LinearOpMode{
             mecanumDrive.driveRobotCentric(-power, 0, 0);
         }
         mecanumDrive.driveRobotCentric(0, 0, 0);
+
+        elapsedTime.reset();
+        while (elapsedTime.milliseconds()<=100){}
         switch(robot.direction) {
             case Up:
                 robot.setX(robot.getX() + distance);
@@ -367,5 +391,18 @@ public class AutonomousMode extends LinearOpMode{
         parameters.cameraName = hardwareMap.get(WebcamName.class, "Webcam 1");
 
         vuforia = new VuforiaLocalizerImplSubclass(parameters);
+    }
+    private void initTfod() {
+        int tfodMonitorViewId = hardwareMap.appContext.getResources().getIdentifier(
+                "tfodMonitorViewId", "id", hardwareMap.appContext.getPackageName());
+        TFObjectDetector.Parameters tfodParameters = new TFObjectDetector.Parameters(tfodMonitorViewId);
+        tfodParameters.minResultConfidence = 0.75f;
+        tfodParameters.isModelTensorFlow2 = true;
+        tfodParameters.inputSize = 300;
+        tfod = ClassFactory.getInstance().createTFObjectDetector(tfodParameters, vuforia);
+
+        // Use loadModelFromAsset() if the TF Model is built in as an asset by Android Studio
+        // Use loadModelFromFile() if you have downloaded a custom team model to the Robot Controller's FLASH.
+        tfod.loadModelFromAsset(TFOD_MODEL_ASSET, LABELS);
     }
 }
