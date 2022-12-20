@@ -304,47 +304,6 @@ public class AutonomousMode extends LinearOpMode{
         elapsedTime.reset();
     }
 
-    //extremely accurate distance is in inches btw
-    //higher the power less accurate it gets i will try to fix
-    public void moveLinearUsingEncoders(double power, double distance) {
-        MecanumDrive mecanumDrive = new MecanumDrive(fL, fR, bL, bR);
-//        bREncoder.setDistancePerPulse(0.03937007874);
-//        bLEncoder.setDistancePerPulse(0.03937007874); //both of these work btw
-//        while (bREncoder.getDistance() <= distance+1) {
-//            mecanumDrive.driveRobotCentric(0, -power, 0);
-//        }
-//        mecanumDrive.driveRobotCentric(0,0,0);
-        bREncoder.setDistancePerPulse(42.2983046); //strafing mechanism
-        while (bREncoder.getRevolutions() < distance/12.0D) { //in one revolution it moves 12 inches gg
-            mecanumDrive.driveRobotCentric(0, -power, 0);
-            telemetry.addData("Distance Traveled bR", bREncoder.getDistance());
-            telemetry.addData("Revolutions bR", bREncoder.getRevolutions());
-            telemetry.update();
-        }
-        telemetry.addData("Distance Traveled bR", bREncoder.getDistance());
-        telemetry.addData("Revolutions bR", bREncoder.getRevolutions());
-        telemetry.update();
-        mecanumDrive.driveRobotCentric(0, 0, 0);
-    }
-
-
-    //may or may not work it is pretty accurate so far though will need thorough testing to verify
-    public void strafeLinearUsingEncoders(double power, double distance) {
-        MecanumDrive mecanumDrive = new MecanumDrive(fL, fR, bL, bR);
-        bREncoder.setDistancePerPulse(42.2983046);
-        while (bREncoder.getRevolutions() <= 1) {
-            mecanumDrive.driveRobotCentric(-0.6, 0, 0);
-            telemetry.addData("Distance", bREncoder.getDistance());
-            telemetry.addData("Revolutions", bREncoder.getRevolutions());
-            telemetry.update();
-
-        }
-        telemetry.addData("Distance", bREncoder.getDistance());
-        telemetry.addData("Revolutions", bREncoder.getRevolutions());
-        telemetry.update();
-        mecanumDrive.driveRobotCentric(0, 0, 0);
-    }
-
     public void turn(double power, double angle){
         // turns counterclockwise negative power for clockwise
         elapsedTime.reset();

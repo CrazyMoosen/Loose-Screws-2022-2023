@@ -78,6 +78,57 @@ public class RobotPosition extends Position {
         }
     }
 
+    //this is accurate very much
+    public static void moveLinearUsingEncoders(Motor.Encoder bREncoder, MecanumDrive mecanumDrive, boolean forward, double distance) {
+        if (forward) {
+            while (bREncoder.getRevolutions() < distance / 12.0D) {
+                if (bREncoder.getRevolutions() < (distance / 12.0D - 1.3)) {
+                    mecanumDrive.driveRobotCentric(0, -0.6, 0); //moves backward
+                } else {
+                    mecanumDrive.driveRobotCentric(0, -0.1, 0); //moves backward
+                }
+            }
+            mecanumDrive.driveRobotCentric(0, 0, 0);
+        }
+        else {
+            while (bREncoder.getRevolutions() > -distance/12.0D) {
+                if (bREncoder.getRevolutions() > ((-distance / 12.0D) + 1.3)) {
+                    mecanumDrive.driveRobotCentric(0, 0.6, 0); //moves backward
+                } else {
+                    mecanumDrive.driveRobotCentric(0, 0.1, 0); //moves backward
+                }
+            }
+            mecanumDrive.driveRobotCentric(0, 0 ,0);
+        }
+    }
+
+    public void strafeLinearUsingEncoders(Motor.Encoder bREncoder, MecanumDrive mecanumDrive, boolean right, double distance) {
+        bREncoder.setDistancePerPulse(42.2983046);
+        if (right) {
+            while (bREncoder.getRevolutions() <= distance / 12.0D) {
+                if (bREncoder.getRevolutions() <= (distance / 12.0 - 0.2D)) {
+                    mecanumDrive.driveRobotCentric(-0.6, 0, 0);
+                } else {
+                    mecanumDrive.driveRobotCentric(-0.1, 0, 0);
+
+                }
+            }
+            mecanumDrive.driveRobotCentric(0, 0, 0);
+        }
+        else {
+            while (bREncoder.getRevolutions() >= -distance / 12.0D) {
+                if (bREncoder.getRevolutions() >= (-distance / 12.0 + 0.3D)) {
+                    mecanumDrive.driveRobotCentric(0.6, 0, 0);
+                } else {
+                    mecanumDrive.driveRobotCentric(0.1, 0, 0);
+
+                }
+            }
+            mecanumDrive.driveRobotCentric(0, 0, 0);
+        }
+    }
+
+
     //moves the robot along the y-axis
     public void moveAlongY(double endY) {
         if (endY != y) {

@@ -53,17 +53,18 @@ public class RobotCentricTeleOp extends OpMode {
         bL = new Motor(hardwareMap, "bL", Motor.GoBILDA.RPM_312);
         bR = new Motor(hardwareMap, "bR", Motor.GoBILDA.RPM_312);
         mecanumDrive = new MecanumDrive(fL, fR, bL, bR);
-        fLEncoder = fL.encoder;
-        bLEncoder = bL.encoder;
-        fREncoder = fR.encoder;
+//        fLEncoder = fL.encoder;
+//        bLEncoder = bL.encoder;
+//        fREncoder = fR.encoder;
         bREncoder = bR.encoder;
+        bREncoder.reset();
         shreyController = new GamepadEx(gamepad1);
         monishController = new GamepadEx(gamepad2);
 
         Motor armMotor = new Motor(hardwareMap, "linearSlideMotor1", Motor.GoBILDA.RPM_312);
         claw = new ClawSubsystem(new SimpleServo(hardwareMap, "servo1", 0, 300), new SimpleServo(hardwareMap, "servo2", 0, 300));
         arm = new ArmSubsystem(armMotor);
-        this.armEncoder = armMotor.encoder;
+        armEncoder = armMotor.encoder;
         armEncoder.reset();
 
         telemetry.addData("Left Servo Position", claw.getLeftServoAngle());
@@ -85,16 +86,16 @@ public class RobotCentricTeleOp extends OpMode {
                 -shreyController.getRightX()*0.45*speedMultiplier
         );
 
-        //this is everything that monish controls
+        //this is everything that monish/arav controls
         if (monishController.isDown(GamepadKeys.Button.A)) {
             locked = true;
             lockedPosition = armEncoder.getRevolutions();
         }
 
-        if (monishController.isDown(GamepadKeys.Button.X) && !locked) { // if monish/arav presses B button the arm moves up
+        if (monishController.isDown(GamepadKeys.Button.X) && !locked) { // if monish/arav presses X button the arm moves up
             arm.moveup();
         }
-        else if (monishController.isDown(GamepadKeys.Button.B) && !locked){ // else if A button down then arm moves down
+        else if (monishController.isDown(GamepadKeys.Button.B) && !locked){ // else if B button down then arm moves down
             arm.movedown();
         }
         else if (!locked){
@@ -120,14 +121,13 @@ public class RobotCentricTeleOp extends OpMode {
             RobotPosition.feather(armEncoder, arm, lockedPosition);
         }
 
-
-//        telemetry.addData("X Pos According to Odometry", driveOdometry.m_odometry.getPoseMeters().getX() * 39.3701);
-//        telemetry.addData("Y Pos According to Odometry", driveOdometry.m_odometry.getPoseMeters().getY() * 39.3701);
-
         telemetry.addData("Left Servo Position", claw.getLeftServoAngle());
         telemetry.addData("Right Servo Position", claw.getRightServoAngle());
         telemetry.addData("Arm Encoder Distance", armEncoder.getDistance());
         telemetry.addData("Arm Encoder Revolutions", armEncoder.getRevolutions());
+        telemetry.addData("bR CPR", bR.getCPR());
+        telemetry.addData("bR Position", bREncoder.getPosition());
+        telemetry.addData("bR Revolutions", bREncoder.getRevolutions());
 
         telemetry.update();
     }
