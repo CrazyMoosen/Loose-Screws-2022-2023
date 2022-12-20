@@ -12,6 +12,7 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
+import org.firstinspires.ftc.team22012.autonomous.RobotPosition;
 import org.firstinspires.ftc.team22012.universal.subsystems.ArmSubsystem;
 import org.firstinspires.ftc.team22012.universal.subsystems.ClawSubsystem;
 import org.firstinspires.ftc.team22012.universal.subsystems.DriveSubsystem;
@@ -39,7 +40,11 @@ public class RobotCentricTeleOp extends OpMode {
      * classes.
      */
     private ArmSubsystem arm;
-    private ClawSubsystem claw;;
+    private Motor.Encoder armEncoder;
+    private ClawSubsystem claw;
+
+    private boolean locked = false;
+    private double lockedPosition = 0;
 
     @Override
     public void init() {
@@ -55,8 +60,11 @@ public class RobotCentricTeleOp extends OpMode {
         shreyController = new GamepadEx(gamepad1);
         monishController = new GamepadEx(gamepad2);
 
+        Motor armMotor = new Motor(hardwareMap, "linearSlideMotor1", Motor.GoBILDA.RPM_312);
         claw = new ClawSubsystem(new SimpleServo(hardwareMap, "servo1", 0, 300), new SimpleServo(hardwareMap, "servo2", 0, 300));
-        arm = new ArmSubsystem(new Motor(hardwareMap, "linearSlideMotor1", Motor.GoBILDA.RPM_312));
+        arm = new ArmSubsystem(armMotor);
+        this.armEncoder = armMotor.encoder;
+        armEncoder.reset();
 
         telemetry.addData("Left Servo Position", claw.getLeftServoAngle());
         telemetry.addData("Right Servo Position", claw.getRightServoAngle());
@@ -65,8 +73,9 @@ public class RobotCentricTeleOp extends OpMode {
 
     @Override
     public void loop() {
+        armEncoder.setDistancePerPulse(57.6692368);
         double speedMultiplier = 1.0;
-        //if shrey presses the A button he can boost the speed of the drivetrain
+        //if shrey presses the B button he can boost the speed of the drivetrain
         if (shreyController.isDown(GamepadKeys.Button.B)) {
             speedMultiplier = 1.5;
         }
@@ -77,14 +86,24 @@ public class RobotCentricTeleOp extends OpMode {
         );
 
         //this is everything that monish controls
-        if (monishController.isDown(GamepadKeys.Button.B)) { // if monish presses B button the arm moves up
+        if (monishController.isDown(GamepadKeys.Button.A)) {
+            locked = true;
+            lockedPosition = armEncoder.getRevolutions();
+        }
+
+        if (monishController.isDown(GamepadKeys.Button.X) && !locked) { // if monish/arav presses B button the arm moves up
             arm.moveup();
         }
-        else if (monishController.isDown(GamepadKeys.Button.X)){ // else if A button down then arm moves down
+        else if (monishController.isDown(GamepadKeys.Button.B) && !locked){ // else if A button down then arm moves down
             arm.movedown();
         }
-        else {
+        else if (!locked){
             arm.stop(); //else don't move the arm at all
+        }
+
+        if ((monishController.isDown(GamepadKeys.Button.X) || monishController.isDown(GamepadKeys.Button.B)) && locked) {
+            locked = false;
+            lockedPosition = 0;
         }
 
         if (monishController.isDown(GamepadKeys.Button.RIGHT_BUMPER)) {
@@ -97,12 +116,18 @@ public class RobotCentricTeleOp extends OpMode {
             claw.closeForBeacon();
         }
 
+        if (locked) {
+            RobotPosition.feather(armEncoder, arm, lockedPosition);
+        }
+
 
 //        telemetry.addData("X Pos According to Odometry", driveOdometry.m_odometry.getPoseMeters().getX() * 39.3701);
 //        telemetry.addData("Y Pos According to Odometry", driveOdometry.m_odometry.getPoseMeters().getY() * 39.3701);
 
         telemetry.addData("Left Servo Position", claw.getLeftServoAngle());
         telemetry.addData("Right Servo Position", claw.getRightServoAngle());
+        telemetry.addData("Arm Encoder Distance", armEncoder.getDistance());
+        telemetry.addData("Arm Encoder Revolutions", armEncoder.getRevolutions());
 
         telemetry.update();
     }

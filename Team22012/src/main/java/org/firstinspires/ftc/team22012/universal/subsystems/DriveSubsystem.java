@@ -18,7 +18,6 @@ import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.YawPitchRollAngles;
 
 public class DriveSubsystem extends SubsystemBase {
-    private HardwareMap hardwareMap;
     private final BHI260IMU imu;
     public MecanumDriveOdometry m_odometry;
     public MecanumDriveKinematics m_kinematics;
@@ -28,21 +27,13 @@ public class DriveSubsystem extends SubsystemBase {
     public static double ticksPerInch = 30.3192377;
 
     Motor fL, fR, bL, bR;
-    public DriveSubsystem(HardwareMap hardwareMap) {
-        this.hardwareMap = hardwareMap;
+    public DriveSubsystem(Motor fL, Motor fR, Motor bL, Motor bR, BHI260IMU imu) {
+        this.fL = fL;
+        this.fR = fR;
+        this.bL = bL;
+        this.bR = bR;
 
-        fL = new Motor(hardwareMap, "fL", Motor.GoBILDA.RPM_312);
-        fR = new Motor(hardwareMap, "fR", Motor.GoBILDA.RPM_312);
-        bL = new Motor(hardwareMap, "bL", Motor.GoBILDA.RPM_312);
-        bR = new Motor(hardwareMap, "bR", Motor.GoBILDA.RPM_312);
-
-        imu = hardwareMap.get(BHI260IMU.class, "imu");
-        IMU.Parameters parameters = new IMU.Parameters(
-                new RevHubOrientationOnRobot(
-                        RevHubOrientationOnRobot.LogoFacingDirection.UP, //Orthogonal #9 in the docs
-                        RevHubOrientationOnRobot.UsbFacingDirection.BACKWARD));
-
-        imu.initialize(parameters);
+        this.imu = imu;
         imu.resetYaw();
 
         //substitute these values with the numbers in meters with how far away the wheels are from the center of the robot

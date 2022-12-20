@@ -38,7 +38,7 @@ public class FieldCentricTeleOp extends OpMode {
         IMU.Parameters parameters = new IMU.Parameters(
                 new RevHubOrientationOnRobot(
                         RevHubOrientationOnRobot.LogoFacingDirection.UP, //Orthogonal #9 in the docs
-                        RevHubOrientationOnRobot.UsbFacingDirection.BACKWARD));
+                        RevHubOrientationOnRobot.UsbFacingDirection.FORWARD));
 
         //this here set it to radians before, however in mecanumDrive.driveFieldCentric(), it converts it to radians, so we will use degrees
         imu.initialize(parameters);

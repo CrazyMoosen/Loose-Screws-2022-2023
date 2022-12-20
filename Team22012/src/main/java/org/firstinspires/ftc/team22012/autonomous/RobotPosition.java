@@ -6,6 +6,8 @@ import com.arcrobotics.ftclib.drivebase.MecanumDrive;
 import com.arcrobotics.ftclib.hardware.motors.Motor;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
+import org.firstinspires.ftc.team22012.universal.subsystems.ArmSubsystem;
+
 
 public class RobotPosition extends Position {
     Motor fL, fR, bL, bR;
@@ -27,10 +29,6 @@ public class RobotPosition extends Position {
 
         mecanumDrive = new MecanumDrive(fL, fR, bL, bR);
 
-//        fLEncoder = fL.encoder;
-//        bLEncoder = bL.encoder;
-//        fREncoder = fR.encoder;
-//        bREncoder = bR.encoder;
         this.direction = direction;
 
     }
@@ -42,8 +40,11 @@ public class RobotPosition extends Position {
 
     //moves the robot along the x-axis
     public void moveAlongX(double endX) {
-        if (endX != x) {
-            double magnitude = (endX - x) / Math.abs(endX - x);
+        if (endX != x && endX <= 144 && endX >= 0) {
+            double magnitude = -1;
+            if (endX > x) {
+                magnitude = 1;
+            }
             if (direction == Direction.Right) {
                 moveLinear(magnitude * 0.6, Math.abs(endX - x));
                 moveLinear(-magnitude * 0.6, stoppingDistance);
@@ -61,6 +62,19 @@ public class RobotPosition extends Position {
                 strafeLinear(magnitude * 0.6, stoppingDistance);
             }
             setX(endX);
+        }
+    }
+
+    //maximum position is 5.6
+    //this works no matter if RobotPosition is even initialized
+    //it holds the arm in place during teleop or autonomous
+    public static void feather(Motor.Encoder armEncoder, ArmSubsystem arm, double minimumRevolutions) {
+        armEncoder.setDistancePerPulse(57.6692368);
+        if (armEncoder.getRevolutions() < minimumRevolutions) {
+            arm.gentlyMoveUp();
+        }
+        else if (armEncoder.getRevolutions() < (minimumRevolutions+0.2) && armEncoder.getRevolutions() > (minimumRevolutions+0.1)) {
+            arm.stop();
         }
     }
 
@@ -97,18 +111,17 @@ public class RobotPosition extends Position {
         // stopping distance
         double time = distance / (speed * abs(power));
         elapsedTime.reset();
-       while (elapsedTime.milliseconds() < time * 1000) {
-//            fL.set(-power);
-//            fR.set(power);
-//            bL.set(-power);
-//            bR.set(power);
-        mecanumDrive.driveRobotCentric(0, -0.6, 0);
+        while (elapsedTime.milliseconds() < time * 1000) {
+            fL.set(-power);
+            fR.set(power);
+            bL.set(-power);
+            bR.set(power);
         }
-       mecanumDrive.driveRobotCentric(0, 0, 0);
-//        fL.set(0);
-//        fR.set(0);
-//        bR.set(0);
-//        bL.set(0);
+        fL.set(0);
+        fR.set(0);
+        bR.set(0);
+        bL.set(0);
+        elapsedTime.reset();
     }
 
     // positive power = strafe right
@@ -174,202 +187,4 @@ public class RobotPosition extends Position {
             return null;
         }
     }
-
-
-    //    public void moveToPos(double endX, double endY) {
-//        //moves robot to the x position given
-//        //if the x position to goto is to the right of the current x position
-//        if (endX > x) {
-//            if (direction == Direction.Left) {
-//                //move backward until hit x position
-//                double distance = fLEncoder.getDistance();
-//                while ((endX - x) > (fLEncoder.getDistance() - distance)) {
-//                    fL.set(0.6);
-//                    fR.set(-0.6);
-//                    bL.set(0.6);
-//                    bR.set(-0.6);
-//                }
-//                fL.set(0);
-//                fR.set(0);
-//                bL.set(0);
-//                bR.set(0);
-//            }
-//            if (direction == Direction.Right) {
-//                //move forward until hit x position
-//                double distance = fLEncoder.getDistance();
-//                while ((endX - x) > (fLEncoder.getDistance() - distance)) {
-//                    fL.set(-0.6);
-//                    fR.set(0.6);
-//                    bL.set(-0.6);
-//                    bR.set(0.6);
-//                }
-//                fL.set(0);
-//                fR.set(0);
-//                bL.set(0);
-//                bR.set(0);
-//            }
-//            if (direction == Direction.Up) {
-//                //strafe right until hit x position
-//                double distance = fLEncoder.getDistance();
-//                while ((endX - x) > (fLEncoder.getDistance() - distance)) {
-//                    mecanumDrive.driveRobotCentric(-0.6, 0, 0);
-//                }
-//                mecanumDrive.driveRobotCentric(0, 0, 0);
-//            }
-//            if (direction == Direction.Down) {
-//                //strafe left until hit x position
-//                double distance = fLEncoder.getDistance();
-//                while ((endX - x) > (fLEncoder.getDistance() - distance)) {
-//                    mecanumDrive.driveRobotCentric(0.6, 0, 0);
-//                }
-//                mecanumDrive.driveRobotCentric(0, 0, 0);
-//            }
-//        }
-//        //if the x position to goto is to the left of the current x position
-//        if (x > endX) {
-//            if (direction == Direction.Left) {
-//                //move forward until hit x pos
-//                double distance = fLEncoder.getDistance();
-//                while ((x - endX) > (fLEncoder.getDistance() - distance)) {
-//                    fL.set(-0.6);
-//                    fR.set(0.6);
-//                    bL.set(-0.6);
-//                    bR.set(0.6);
-//                }
-//                fL.set(0);
-//                fR.set(0);
-//                bL.set(0);
-//                bR.set(0);
-//            }
-//            if (direction == Direction.Right) {
-//                //move backward until hit x pos
-//                double distance = fLEncoder.getDistance();
-//                while ((x - endX) > (fLEncoder.getDistance() - distance)) {
-//                    fL.set(0.6);
-//                    fR.set(-0.6);
-//                    bL.set(0.6);
-//                    bR.set(-0.6);
-//                }
-//                fL.set(0);
-//                fR.set(0);
-//                bL.set(0);
-//                bR.set(0);
-//            }
-//            if (direction == Direction.Up) {
-//                //strafe left until hit x pos
-//                double distance = fLEncoder.getDistance();
-//                while ((x - endX) > (fLEncoder.getDistance() - distance)) {
-//                    mecanumDrive.driveRobotCentric(0.6, 0, 0);
-//                }
-//                mecanumDrive.driveRobotCentric(0, 0, 0);
-//            }
-//            if (direction == Direction.Down) {
-//                //strafe right until hit x pos
-//                double distance = fLEncoder.getDistance();
-//                while ((x - endX) > (fLEncoder.getDistance() - distance)) {
-//                    mecanumDrive.driveRobotCentric(-0.6, 0, 0);
-//                }
-//                mecanumDrive.driveRobotCentric(0, 0, 0);
-//            }
-//        }
-//
-//        //moves robot to the y position given
-//        //if the y position to goto is below the current y position
-//        if (endY > y) {
-//            if (direction == Direction.Right) {
-//                //strafe right
-//                double distance = fLEncoder.getDistance();
-//                while ((endY - y) > (fLEncoder.getDistance() - distance)) {
-//                    mecanumDrive.driveRobotCentric(-0.6, 0, 0);
-//                }
-//                mecanumDrive.driveRobotCentric(0, 0, 0);
-//            }
-//            if (direction == Direction.Left) {
-//                //strafe left
-//                double distance = fLEncoder.getDistance();
-//                while ((endY - y) > (fLEncoder.getDistance() - distance)) {
-//                    mecanumDrive.driveRobotCentric(0.6, 0, 0);
-//                }
-//                mecanumDrive.driveRobotCentric(0, 0, 0);
-//            }
-//            if (direction == Direction.Down) {
-//                //move forward
-//                double distance = fLEncoder.getDistance();
-//                while ((endY - y) > (fLEncoder.getDistance() - distance)) {
-//                    fL.set(-0.6);
-//                    fR.set(0.6);
-//                    bL.set(-0.6);
-//                    bR.set(0.6);
-//                }
-//                fL.set(0);
-//                fR.set(0);
-//                bL.set(0);
-//                bR.set(0);
-//            }
-//            if (direction == Direction.Up) {
-//                //move backward
-//                double distance = fLEncoder.getDistance();
-//                while ((endY - y) > (fLEncoder.getDistance() - distance)) {
-//                    fL.set(0.6);
-//                    fR.set(-0.6);
-//                    bL.set(0.6);
-//                    bR.set(-0.6);
-//                }
-//                fL.set(0);
-//                fR.set(0);
-//                bL.set(0);
-//                bR.set(0);
-//            }
-//        }
-//        //if the y position to goto is above the current y position
-//        if (y > endY) {
-//            if (direction == Direction.Left) {
-//                //strafe right
-//                double distance = fLEncoder.getDistance();
-//                while ((y - endY) > (fLEncoder.getDistance() - distance)) {
-//                    mecanumDrive.driveRobotCentric(-0.6, 0, 0);
-//                }
-//                mecanumDrive.driveRobotCentric(0, 0, 0);
-//            }
-//            if (direction == Direction.Right) {
-//                //strafe left
-//                double distance = fLEncoder.getDistance();
-//                while ((y - endY) > (fLEncoder.getDistance() - distance)) {
-//                    mecanumDrive.driveRobotCentric(0.6, 0, 0);
-//                }
-//                mecanumDrive.driveRobotCentric(0, 0, 0);
-//            }
-//            if (direction == Direction.Up) {
-//                //move forward
-//                double distance = fLEncoder.getDistance();
-//                while ((y - endY) > (fLEncoder.getDistance() - distance)) {
-//                    fL.set(-0.6);
-//                    fR.set(0.6);
-//                    bL.set(-0.6);
-//                    bR.set(0.6);
-//                }
-//                fL.set(0);
-//                fR.set(0);
-//                bL.set(0);
-//                bR.set(0);
-//            }
-//            if (direction == Direction.Down) {
-//                //move backward
-//                double distance = fLEncoder.getDistance();
-//                while ((y - endY) > (fLEncoder.getDistance() - distance)) {
-//                    fL.set(0.6);
-//                    fR.set(-0.6);
-//                    bL.set(0.6);
-//                    bR.set(-0.6);
-//                }
-//                fL.set(0);
-//                fR.set(0);
-//                bL.set(0);
-//                bR.set(0);
-//            }
-//        }
-//
-//        x = endX;
-//        y = endY;
-//    }
 }

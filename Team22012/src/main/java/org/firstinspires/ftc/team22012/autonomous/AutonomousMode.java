@@ -56,15 +56,18 @@ public class AutonomousMode extends LinearOpMode{
     //actually is
     double percent = 0;
     Motor fL, fR, bL, bR;
+    Motor.Encoder bLEncoder, bREncoder;
     ElapsedTime elapsedTime = new ElapsedTime();
 
     // Experimentally determined variables
+    // i did some mathematics using NO-LOAD RPM so the actual value should be theoretically lower so it matches the case below
+    // 312 rotation/min * 1 min/60 seconds * 11.8736494 inches/revolution = 61.74297688 inches/sec
     final double speed = 55; // In inches/sec
+
     final double stoppingDistance = 2.1; // In inches, the distance it takes to stop the robot travelling
     // at the power of 0.6
     final double degPerSec = 150;
 
-    //testing this just means the robot will start off at Blue 1 position and will face toward the red side.
     private RobotPosition robot;
 
     private static final String TFOD_MODEL_ASSET = "PowerPlay.tflite";
@@ -109,16 +112,20 @@ public class AutonomousMode extends LinearOpMode{
         fR = new Motor(hardwareMap, "fR", Motor.GoBILDA.RPM_312);
         bL = new Motor(hardwareMap, "bL", Motor.GoBILDA.RPM_312);
         bR = new Motor(hardwareMap, "bR", Motor.GoBILDA.RPM_312);
+        bLEncoder = bL.encoder;
+        bREncoder = bR.encoder;
         sleeveColor = SignalSleeveColor.NONE;
         claw = new ClawSubsystem(new SimpleServo(hardwareMap, "servo1", 0, 300), new SimpleServo(hardwareMap, "servo2", 0, 300));
-        arm = new ArmSubsystem(new Motor(hardwareMap, "linearSlideMotor1", Motor.GoBILDA.RPM_312));        //sets the distance per pulse so we can move the robot accordingly
-        fL.setDistancePerPulse(18);
-        fR.setDistancePerPulse(18);
-        bR.setDistancePerPulse(18);
-        bL.setDistancePerPulse(18);
+        arm = new ArmSubsystem(new Motor(hardwareMap, "linearSlideMotor1", Motor.GoBILDA.RPM_312));
+        //sets the distance per pulse so we can move the robot accordingly
+        fL.setDistancePerPulse(0.03937007874);
+        fR.setDistancePerPulse(0.03937007874);
+        bR.setDistancePerPulse(0.03937007874);
+        bL.setDistancePerPulse(0.03937007874);
+        robot = new RobotPosition(fL, fR, bL, bR, 0, 26, Direction.Right);
         // The TFObjectDetector uses the camera frames from the VuforiaLocalizer, so we create that
         // first.
-        robot = new RobotPosition(fL, fR, bL, bR, 0, 26, Direction.Right);
+
         initVuforia();
         initTfod();
 
@@ -226,6 +233,8 @@ public class AutonomousMode extends LinearOpMode{
                     telemetry.addData("location is", "none");
                 }
                 telemetry.addData("Percentage of color", percent);
+
+
                 if (!moved && sleeveColor!=SignalSleeveColor.NONE) {
                     park();
                     moved = true;
@@ -282,23 +291,6 @@ public class AutonomousMode extends LinearOpMode{
         bR.set(0);
         bL.set(0);
         elapsedTime.reset();
-        while (elapsedTime.milliseconds()<=100){}
-        switch(robot.direction) {
-            case Up:
-                robot.setY(robot.getY() - distance);
-                break;
-            case Down:
-                robot.setY(robot.getY() + distance);
-                break;
-            case Left:
-                robot.setX(robot.getX() - distance);
-                break;
-            case Right:
-                robot.setX(robot.getX() + distance);
-                break;
-            default:
-                break;
-        }
     }
     public void strafeLinear(double power, double distance) {
         double time = distance / (speed * abs(power));
@@ -310,54 +302,47 @@ public class AutonomousMode extends LinearOpMode{
         mecanumDrive.driveRobotCentric(0, 0, 0);
 
         elapsedTime.reset();
-        while (elapsedTime.milliseconds()<=100){}
-        switch(robot.direction) {
-            case Up:
-                robot.setX(robot.getX() + distance);
-                break;
-            case Down:
-                robot.setX(robot.getX() - distance);
-                break;
-            case Left:
-                robot.setY(robot.getY() - distance);
-                break;
-            case Right:
-                robot.setY(robot.getY() + distance);
-                break;
-            default:
-                break;
-        }
     }
 
-    public void moveLinearTime(double power, double time) {
-        // This code will move backward if the power is negative
-        elapsedTime.reset();
-        while (elapsedTime.milliseconds() < time * 1000) {
-            fL.set(-power);
-            fR.set(power);
-            bL.set(-power);
-            bR.set(power);
+    //extremely accurate distance is in inches btw
+    //higher the power less accurate it gets i will try to fix
+    public void moveLinearUsingEncoders(double power, double distance) {
+        MecanumDrive mecanumDrive = new MecanumDrive(fL, fR, bL, bR);
+//        bREncoder.setDistancePerPulse(0.03937007874);
+//        bLEncoder.setDistancePerPulse(0.03937007874); //both of these work btw
+//        while (bREncoder.getDistance() <= distance+1) {
+//            mecanumDrive.driveRobotCentric(0, -power, 0);
+//        }
+//        mecanumDrive.driveRobotCentric(0,0,0);
+        bREncoder.setDistancePerPulse(42.2983046); //strafing mechanism
+        while (bREncoder.getRevolutions() < distance/12.0D) { //in one revolution it moves 12 inches gg
+            mecanumDrive.driveRobotCentric(0, -power, 0);
+            telemetry.addData("Distance Traveled bR", bREncoder.getDistance());
+            telemetry.addData("Revolutions bR", bREncoder.getRevolutions());
+            telemetry.update();
         }
-        fL.set(0);
-        fR.set(0);
-        bR.set(0);
-        bL.set(0);
+        telemetry.addData("Distance Traveled bR", bREncoder.getDistance());
+        telemetry.addData("Revolutions bR", bREncoder.getRevolutions());
+        telemetry.update();
+        mecanumDrive.driveRobotCentric(0, 0, 0);
     }
 
-    public void turnForSec(double power, double time){
-        elapsedTime.reset();
-        while (elapsedTime.milliseconds() < time * 1000) {
-            fL.set(power);
-            fR.set(power);
-            bL.set(power);
-            bR.set(power);
-        }
-        fL.set(0);
-        fR.set(0);
-        bR.set(0);
-        bL.set(0);
 
-        robot.changeDirection(360-(time*degPerSec));
+    //may or may not work it is pretty accurate so far though will need thorough testing to verify
+    public void strafeLinearUsingEncoders(double power, double distance) {
+        MecanumDrive mecanumDrive = new MecanumDrive(fL, fR, bL, bR);
+        bREncoder.setDistancePerPulse(42.2983046);
+        while (bREncoder.getRevolutions() <= 1) {
+            mecanumDrive.driveRobotCentric(-0.6, 0, 0);
+            telemetry.addData("Distance", bREncoder.getDistance());
+            telemetry.addData("Revolutions", bREncoder.getRevolutions());
+            telemetry.update();
+
+        }
+        telemetry.addData("Distance", bREncoder.getDistance());
+        telemetry.addData("Revolutions", bREncoder.getRevolutions());
+        telemetry.update();
+        mecanumDrive.driveRobotCentric(0, 0, 0);
     }
 
     public void turn(double power, double angle){
