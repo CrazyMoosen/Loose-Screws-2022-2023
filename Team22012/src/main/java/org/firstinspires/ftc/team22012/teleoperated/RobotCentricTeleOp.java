@@ -53,9 +53,7 @@ public class RobotCentricTeleOp extends OpMode {
         bL = new Motor(hardwareMap, "bL", Motor.GoBILDA.RPM_312);
         bR = new Motor(hardwareMap, "bR", Motor.GoBILDA.RPM_312);
         mecanumDrive = new MecanumDrive(fL, fR, bL, bR);
-//        fLEncoder = fL.encoder;
-//        bLEncoder = bL.encoder;
-//        fREncoder = fR.encoder;
+
         bREncoder = bR.encoder;
         bREncoder.reset();
         shreyController = new GamepadEx(gamepad1);
@@ -74,7 +72,7 @@ public class RobotCentricTeleOp extends OpMode {
 
     @Override
     public void loop() {
-        armEncoder.setDistancePerPulse(57.6692368);
+        bREncoder.setDistancePerPulse(0.0223214286D); //this shows correct distance in inches
         double speedMultiplier = 1.0;
         //if shrey presses the B button he can boost the speed of the drivetrain
         if (shreyController.isDown(GamepadKeys.Button.B)) {
@@ -128,6 +126,7 @@ public class RobotCentricTeleOp extends OpMode {
         telemetry.addData("bR CPR", bR.getCPR());
         telemetry.addData("bR Position", bREncoder.getPosition());
         telemetry.addData("bR Revolutions", bREncoder.getRevolutions());
+        telemetry.addData("bR Distance", bREncoder.getDistance());
 
         telemetry.update();
     }

@@ -1,11 +1,17 @@
 package org.firstinspires.ftc.team22012.autonomous;
 
 import static java.lang.Math.abs;
+import static java.lang.Math.min;
 
+import com.arcrobotics.ftclib.command.Robot;
 import com.arcrobotics.ftclib.drivebase.MecanumDrive;
 import com.arcrobotics.ftclib.hardware.motors.Motor;
+import com.qualcomm.hardware.bosch.BHI260IMU;
 import com.qualcomm.robotcore.util.ElapsedTime;
+import com.qualcomm.robotcore.util.RobotLog;
 
+import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
+import org.firstinspires.ftc.robotcore.external.navigation.YawPitchRollAngles;
 import org.firstinspires.ftc.team22012.universal.subsystems.ArmSubsystem;
 
 
@@ -13,6 +19,7 @@ public class RobotPosition extends Position {
     Motor fL, fR, bL, bR;
     MecanumDrive mecanumDrive;
 //    Motor.Encoder fLEncoder, fREncoder, bLEncoder, bREncoder;
+    Motor.Encoder backRightEncoder;
     Direction direction;
 
     final double speed = 55; // In inches/sec
@@ -26,6 +33,9 @@ public class RobotPosition extends Position {
         this.fR = fR;
         this.bL = bL;
         this.bR = bR;
+        backRightEncoder = bR.encoder;
+        backRightEncoder.reset();
+        backRightEncoder.setDistancePerPulse(0.0223214286D);
 
         mecanumDrive = new MecanumDrive(fL, fR, bL, bR);
 
@@ -33,7 +43,8 @@ public class RobotPosition extends Position {
 
     }
 
-    public void moveToPosManual(double endX, double endY) {
+    public void moveToPos(double endX, double endY) {
+        backRightEncoder.reset();
         moveAlongX(endX);
         moveAlongY(endY);
     }
@@ -41,35 +52,52 @@ public class RobotPosition extends Position {
     //moves the robot along the x-axis
     public void moveAlongX(double endX) {
         if (endX != x && endX <= 144 && endX >= 0) {
-            double magnitude = -1;
-            if (endX > x) {
-                magnitude = 1;
-            }
+            boolean magnitude = endX > x;
             if (direction == Direction.Right) {
-                moveLinear(magnitude * 0.6, Math.abs(endX - x));
-                moveLinear(-magnitude * 0.6, stoppingDistance);
+                moveLinearUsingEncoders(backRightEncoder, mecanumDrive, magnitude, Math.abs(endX - x));
             }
             if (direction == Direction.Left) {
-                moveLinear(-magnitude * 0.6, Math.abs(endX - x));
-                moveLinear(magnitude * 0.6, stoppingDistance);
+                moveLinearUsingEncoders(backRightEncoder, mecanumDrive, !magnitude, Math.abs(endX - x));
             }
             if (direction == Direction.Up) {
-                strafeLinear(magnitude * 0.6, Math.abs(endX - x));
-                strafeLinear(-magnitude * 0.6, stoppingDistance);
+                strafeLinearUsingEncoders(backRightEncoder, mecanumDrive, magnitude, Math.abs(endX - x));
             }
             if (direction == Direction.Down) {
-                strafeLinear(-magnitude * 0.6, Math.abs(endX - x));
-                strafeLinear(magnitude * 0.6, stoppingDistance);
+                strafeLinearUsingEncoders(backRightEncoder, mecanumDrive, !magnitude, Math.abs(endX - x));
             }
             setX(endX);
         }
     }
 
-    //maximum position is 5.6
+    //moves the robot along the y-axis
+    public void moveAlongY(double endY) {
+        if (endY != y) {
+            boolean magnitude = endY > y;
+            double dist = Math.abs(endY - y);
+            if (direction == Direction.Right) {
+                strafeLinearUsingEncoders(backRightEncoder, mecanumDrive, magnitude, dist);
+            }
+            if (direction == Direction.Left) {
+                strafeLinearUsingEncoders(backRightEncoder, mecanumDrive, !magnitude, dist);
+            }
+            if (direction == Direction.Up) {
+                moveLinearUsingEncoders(backRightEncoder, mecanumDrive, !magnitude, dist);
+            }
+            if (direction == Direction.Down) {
+                moveLinearUsingEncoders(backRightEncoder, mecanumDrive, magnitude, dist);
+            }
+            setY(endY);
+        }
+    }
+
+    //maximum position is around 5.6
     //this works no matter if RobotPosition is even initialized
     //it holds the arm in place during teleop or autonomous
     public static void feather(Motor.Encoder armEncoder, ArmSubsystem arm, double minimumRevolutions) {
         armEncoder.setDistancePerPulse(57.6692368);
+        if (armEncoder.getRevolutions() < minimumRevolutions - 1) {
+            arm.moveup(); //makes it go up faster if max position
+        }
         if (armEncoder.getRevolutions() < minimumRevolutions) {
             arm.gentlyMoveUp();
         }
@@ -129,32 +157,6 @@ public class RobotPosition extends Position {
     }
 
 
-    //moves the robot along the y-axis
-    public void moveAlongY(double endY) {
-        if (endY != y) {
-            double magnitude = (endY - y) / Math.abs(endY - y);
-            double dist = Math.abs(endY - y);
-            if (direction == Direction.Right) {
-                strafeLinear(magnitude * 0.6, dist);
-                strafeLinear(-magnitude * 0.6, stoppingDistance);
-            }
-            if (direction == Direction.Left) {
-                strafeLinear(-magnitude * 0.6, dist);
-                strafeLinear(magnitude * 0.6, stoppingDistance);
-            }
-            if (direction == Direction.Up) {
-                moveLinear(-magnitude * 0.6, dist);
-                moveLinear(magnitude * 0.6, stoppingDistance);
-            }
-            if (direction == Direction.Down) {
-                moveLinear(magnitude * 0.6, dist);
-                moveLinear(-magnitude * 0.6, stoppingDistance);
-            }
-            setY(endY);
-        }
-    }
-
-
     public void moveLinear(double power, double distance) {
         ElapsedTime elapsedTime = new ElapsedTime();
         // This code will move backward if the power is negative
@@ -185,6 +187,33 @@ public class RobotPosition extends Position {
             mecanumDrive.driveRobotCentric(-power, 0, 0);
         }
         mecanumDrive.driveRobotCentric(0, 0, 0);
+    }
+
+    public void turnLeft(MecanumDrive mecanumDrive, BHI260IMU imu) {
+        imu.resetYaw();
+        YawPitchRollAngles robotOrientation = imu.getRobotYawPitchRollAngles();
+        while (robotOrientation.getYaw(AngleUnit.DEGREES) < 89) {
+            mecanumDrive.driveRobotCentric(0, 0, 0.3);
+        }
+        changeDirection(270);
+    }
+
+    public void turnRight(MecanumDrive mecanumDrive, BHI260IMU imu) {
+        imu.resetYaw();
+        YawPitchRollAngles robotOrientation = imu.getRobotYawPitchRollAngles();
+        while (robotOrientation.getYaw(AngleUnit.DEGREES) > -89) {
+            mecanumDrive.driveRobotCentric(0, 0, -0.3);
+        }
+        changeDirection(90);
+    }
+
+    public void turnAround(MecanumDrive mecanumDrive, BHI260IMU imu) {
+        imu.resetYaw();
+        YawPitchRollAngles robotOrientation = imu.getRobotYawPitchRollAngles();
+        while (robotOrientation.getYaw(AngleUnit.DEGREES) < 179) {
+            mecanumDrive.driveRobotCentric(0, 0, 0.3);
+        }
+        changeDirection(180);
     }
 
     //only positive values and in degrees, angle is clockwise of the original angle

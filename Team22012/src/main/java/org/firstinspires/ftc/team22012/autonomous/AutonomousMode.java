@@ -5,21 +5,21 @@ import static java.lang.Math.abs;
 import android.graphics.Bitmap;
 
 import com.arcrobotics.ftclib.drivebase.MecanumDrive;
-import com.arcrobotics.ftclib.hardware.ServoEx;
 import com.arcrobotics.ftclib.hardware.SimpleServo;
 import com.arcrobotics.ftclib.hardware.motors.Motor;
+import com.qualcomm.hardware.bosch.BHI260IMU;
+import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
+import com.qualcomm.robotcore.hardware.IMU;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.robotcore.external.ClassFactory;
 import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
 import org.firstinspires.ftc.robotcore.external.navigation.VuforiaLocalizer;
-import org.firstinspires.ftc.robotcore.external.tfod.Recognition;
 import org.firstinspires.ftc.robotcore.external.tfod.TFObjectDetector;
 import org.firstinspires.ftc.team22012.universal.subsystems.ArmSubsystem;
 import org.firstinspires.ftc.team22012.universal.subsystems.ClawSubsystem;
-import org.firstinspires.ftc.team22012.universal.subsystems.DriveSubsystem;
 import org.firstinspires.ftc.team22012.vision.VuforiaLocalizerImplSubclass;
 import org.opencv.android.Utils;
 import org.opencv.core.Core;
@@ -30,8 +30,6 @@ import org.opencv.core.Rect;
 import org.opencv.core.Scalar;
 import org.opencv.imgcodecs.Imgcodecs;
 import org.opencv.imgproc.Imgproc;
-
-import java.util.List;
 
 //@Autonomous(name = "Vuforia Webcam Detection Blue Team")
 @Autonomous(name = "Autonomous Mode")
@@ -112,16 +110,17 @@ public class AutonomousMode extends LinearOpMode{
         fR = new Motor(hardwareMap, "fR", Motor.GoBILDA.RPM_312);
         bL = new Motor(hardwareMap, "bL", Motor.GoBILDA.RPM_312);
         bR = new Motor(hardwareMap, "bR", Motor.GoBILDA.RPM_312);
-        bLEncoder = bL.encoder;
         bREncoder = bR.encoder;
         sleeveColor = SignalSleeveColor.NONE;
         claw = new ClawSubsystem(new SimpleServo(hardwareMap, "servo1", 0, 300), new SimpleServo(hardwareMap, "servo2", 0, 300));
-        arm = new ArmSubsystem(new Motor(hardwareMap, "linearSlideMotor1", Motor.GoBILDA.RPM_312));
+        Motor armMotor = new Motor(hardwareMap, "linearSlideMotor1", Motor.GoBILDA.RPM_312);
+        arm = new ArmSubsystem(armMotor);
+        Motor.Encoder armEncoder = armMotor.encoder;
         //sets the distance per pulse so we can move the robot accordingly
-        fL.setDistancePerPulse(0.03937007874);
-        fR.setDistancePerPulse(0.03937007874);
-        bR.setDistancePerPulse(0.03937007874);
-        bL.setDistancePerPulse(0.03937007874);
+        fL.setDistancePerPulse(0.0223214286D);
+        fR.setDistancePerPulse(0.0223214286D); // this is equal to 12/537.6
+        bR.setDistancePerPulse(0.0223214286D);
+        bL.setDistancePerPulse(0.0223214286D);
         robot = new RobotPosition(fL, fR, bL, bR, 0, 26, Direction.Right);
         // The TFObjectDetector uses the camera frames from the VuforiaLocalizer, so we create that
         // first.
@@ -145,6 +144,25 @@ public class AutonomousMode extends LinearOpMode{
             tfod.setZoom(1.0, 16.0 / 9.0);
         }
 
+        BHI260IMU imu = hardwareMap.get(BHI260IMU.class, "imu");
+        IMU.Parameters parameters = new IMU.Parameters(
+                new RevHubOrientationOnRobot(
+                        RevHubOrientationOnRobot.LogoFacingDirection.UP, //Orthogonal #9 in the docs
+                        RevHubOrientationOnRobot.UsbFacingDirection.FORWARD));
+
+        imu.initialize(parameters);
+        imu.resetYaw();
+
+        elapsedTime.reset();
+        while (elapsedTime.milliseconds() < 2000) {
+            arm.moveup();
+        }
+        double finalPosition = armEncoder.getRevolutions();
+        while (armEncoder.getRevolutions() > 0.3) {
+            arm.movedown();
+        }
+        arm.stop();
+        claw.openFully();
         telemetry.addData(">", "Press Play to start op mode");
         telemetry.addData("X Pos In Robot Position", robot.getX());
         telemetry.addData("Y Pos In Robot Position", robot.getY());
@@ -247,10 +265,10 @@ public class AutonomousMode extends LinearOpMode{
     }
     public void scoreMidJunction(){
         claw.closeFully();
-        robot.moveToPosManual(36, 26);
-        robot.moveToPosManual(34, 38);
+        robot.moveToPos(36, 26);
+        robot.moveToPos(34, 38);
         arm.moveup();
-        robot.moveToPosManual(36,38);
+        robot.moveToPos(36,38);
         claw.openFully();
         arm.stop();
     }
