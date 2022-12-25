@@ -21,7 +21,12 @@ import org.firstinspires.ftc.team22012.universal.subsystems.ArmSubsystem;
 import org.opencv.android.Utils;
 import org.opencv.core.CvType;
 import org.opencv.core.Mat;
+import org.opencv.core.Size;
 import org.opencv.imgcodecs.Imgcodecs;
+import org.opencv.imgproc.Imgproc;
+import org.opencv.videoio.VideoWriter;
+
+import java.util.LinkedList;
 
 
 public class RobotPosition extends Position {
@@ -34,10 +39,12 @@ public class RobotPosition extends Position {
     Bitmap map;
     Canvas mapCanvas;
 
+    LinkedList<Bitmap> frames = new LinkedList<>();
+
     final double speed = 55; // In inches/sec
-    final double stoppingDistance = 2.1; // In inches, the distance it takes to stop the robot travelling
-    // at the power of 0.6
-    final double degPerSec = 150;
+//    final double stoppingDistance = 2.1; // In inches, the distance it takes to stop the robot travelling
+//    // at the power of 0.6
+//    final double degPerSec = 150;
 
     int[][] lowJunctionPositions = {{48, 24}, {96, 24}, {24, 48}, {120, 48}, {24, 96}, {120, 96}, {48, 120}, {96, 120}};
     int[][] mediumJunctionPositions = {{48, 48}, {96, 48}, {48, 96}, {96, 96}};
@@ -55,8 +62,9 @@ public class RobotPosition extends Position {
         backRightEncoder.setDistancePerPulse(0.0223214286D);
 
         initPlayingField();
-        updatePlayerLocation();
+        updatePlayerLocation(x, y);
         saveMap();
+        frames.add(map);
 
         mecanumDrive = new MecanumDrive(fL, fR, bL, bR);
 
@@ -97,26 +105,26 @@ public class RobotPosition extends Position {
         mapCanvas.drawText("L", 48f-2, 120f+4, color);
         mapCanvas.drawText("L", 96f-2, 120f+4, color);
 
-        color.setARGB(255, 0, 255, 255);
+        color.setARGB(255, 255, 255, 0);
         mapCanvas.drawText("M", 48f-4, 48f+2, color);
         mapCanvas.drawText("M", 96f-4, 48f+2, color);
         mapCanvas.drawText("M", 48f-4, 96f+2, color);
         mapCanvas.drawText("M", 96f-4, 96f+2, color);
 
-        color.setARGB(255, 255, 0, 0);
+        color.setARGB(255, 0, 0, 255);
         mapCanvas.drawText("H", 72-4, 48+4, color);
         mapCanvas.drawText("H", 48-4, 72+4, color);
         mapCanvas.drawText("H", 96-4, 72+4, color);
         mapCanvas.drawText("H", 72-4, 96+4, color);
 
-        color.setARGB(255, 255, 0, 0);
+        color.setARGB(255, 0, 0, 255);
         //the lines are actually 10.5 inches but 2 inches thick so should i do 58.5 or 59.5?
         mapCanvas.drawLine(58.5f, 0, 58.5f, 24, color);
         mapCanvas.drawLine(59.5f, 0, 59.5f, 24, color);
         mapCanvas.drawLine(58.5f, 120, 58.5f, 144, color);
         mapCanvas.drawLine(59.5f, 120, 59.5f, 144, color);
 
-        color.setARGB(255, 0, 0, 255);
+        color.setARGB(255, 255, 0, 0);
         mapCanvas.drawLine(85.5f, 0, 85.5f, 24, color);
         mapCanvas.drawLine(84.5f, 0, 84.5f, 24, color);
         mapCanvas.drawLine(85.5f, 120, 85.5f, 144, color);
@@ -128,20 +136,103 @@ public class RobotPosition extends Position {
         Mat img = new Mat(144, 144, CvType.CV_8UC3);
         Utils.bitmapToMat(this.map, img);
 
+        Imgproc.cvtColor(img, img, Imgproc.COLOR_BGR2RGB); //this fixes ARGB being ABGR above
+
         String filePath = "sdcard/FIRST/map.png";
         Imgcodecs.imwrite(filePath, img);
     }
 
-    private void updatePlayerLocation() {
+    public void saveVideo() {
+        VideoWriter out = new VideoWriter("sdcard/FIRST/output.avi", VideoWriter.fourcc('M', 'J', 'P', 'G'), 10, new Size(144, 144));
+        for (Bitmap frame : frames) {
+            Mat frameMatrix = new Mat(144, 144, CvType.CV_8UC3);
+            Utils.bitmapToMat(frame, frameMatrix);
+            out.write(frameMatrix);
+        }
+        out.release();
+    }
+
+    //this function animates moving to the end location after moving
+    private void updatePlayerLocation(double endX, double endY) {
         Paint color = new Paint();
-        color.setARGB(255, 0, 0, 255);
+        color.setARGB(255, 255, 0, 0);
+        boolean magnitudeX = endX > x;
+        if (magnitudeX) {
+            for (int i = 0; i < (endX - x); i++) {
+                initPlayingField();
+                mapCanvas.drawRect(new Rect((int) x + i, (int) y - 14, (int) x + 14 + i, (int) y), color);
+                frames.add(map);
+            }
+        }
+        else {
+            for (int i = 0; i > (x - endX); i--) {
+                initPlayingField();
+                mapCanvas.drawRect(new Rect((int) x + i, (int) y - 14, (int) x + 14 + i, (int) y), color);
+                frames.add(map);
+            }
+        }
+        boolean magnitudeY = endY > y;
+        if (magnitudeY) {
+            for (int i = 0; i < (endY - y); i++) {
+                initPlayingField();
+                mapCanvas.drawRect(new Rect((int)x, (int) y - 14 + i, (int) x + 14 + i, (int) y + i), color);
+                frames.add(map);
+            }
+        }
+        else {
+            for (int i = 0; i > (y - endY); i--) {
+                initPlayingField();
+                mapCanvas.drawRect(new Rect((int) x, (int) y - 14 + i, (int) x + 14, (int) y+i), color);
+                frames.add(map);
+            }
+        }
         initPlayingField();
-        mapCanvas.drawRect(new Rect((int)x, (int)y-14, (int)x+14, (int)y), color);
+        Rect robot = new Rect((int)x, (int)y-14, (int)x+14, (int)y);
+        robot.offset((int)(endX - x), (int)(endY - y));
+        mapCanvas.drawRect(robot, color);
+        frames.add(map);
     }
 
     public boolean canMoveToPosition(double endX, double endY) {
         Rect robot = new Rect((int)x, (int)y-14, (int)x+14, (int)y);
-        robot.offset((int)(endX-x), (int)(endY-y));
+        boolean magnitudeX = endX > x;
+        if (magnitudeX) {
+            for (int i = 0; i < (endX - x); i++) {
+                robot.offset(1, 0);
+                if (!legiblePosition(robot)) {
+                    return false;
+                }
+            }
+        }
+        else {
+            for (int i = 0; i > (x - endX); i--) {
+                robot.offset(-1, 0);
+                if (!legiblePosition(robot)) {
+                    return false;
+                }
+            }
+        }
+        boolean magnitudeY = endY > y;
+        if (magnitudeY) {
+            for (int i = 0; i < (endY - y); i++) {
+                robot.offset(0, 1);
+                if (!legiblePosition(robot)) {
+                    return false;
+                }
+            }
+        }
+        else {
+            for (int i = 0; i > (y - endY); i--) {
+                robot.offset(0, -1);
+                if (!legiblePosition(robot)) {
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
+
+    public boolean legiblePosition(Rect robot) {
         for (int i = 0; i < 8; i++) {
             if (robot.contains(lowJunctionPositions[i][0], lowJunctionPositions[i][1])) {
                 return false;
@@ -163,10 +254,11 @@ public class RobotPosition extends Position {
     public void moveToPos(double endX, double endY) {
         if (canMoveToPosition(endX, endY)) {
             backRightEncoder.reset();
+            updatePlayerLocation(endX, endY);
             moveAlongX(endX);
             moveAlongY(endY);
-            updatePlayerLocation();
             saveMap();
+            saveVideo();
         }
     }
 
