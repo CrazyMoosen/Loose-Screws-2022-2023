@@ -42,6 +42,10 @@ public class AutonomousMode extends LinearOpMode{
         PURPLE,
         NONE;
     }
+    private int conesScored = 0;
+    Motor.Encoder armEncoder;
+
+    private boolean scoring = false;
 
     //Region of Interest that has the signal cone
     private final Rect ROIRect = new Rect(new Point(250, 0), new Point(640, 410));
@@ -94,7 +98,7 @@ public class AutonomousMode extends LinearOpMode{
      */
     private static final String VUFORIA_KEY = "AaLoWT//////AAABmWaNq1010053irJz8PaMwKiF7blCVOw/MvnY6q+qCywU7dLtWNViim0rvnbnrqZJRlodQSGfMsuMTx8IXZ1Y3KuRAYzSgKSxYQvkreYlG6ygCeEbrTZoDPcxfzzaJAdmw7yK6tCYB0SPMRAvjCO+G5KhQNJ7DAzl27caZj4pzzF//Vnbz+c5hzfEMpxUXntpt7x7V++iyMA9ZYq1I/kpzhyz9NDI4jNFPlOX94s9eACMZdFI0iVHcWL5CtjByci5alAI98sYbXpHSfRzAeHaD32Pg1qkiCFEcpAHUFsf67tFeHLn1cUF4RMqHmU8OvSbJkGOONEll2BUgqk7LINQlnA2Qb8HA/AQSb6OBOoEmWSg";
 
-
+    private double finalPosition;
     /**
      * {@link #vuforia} is the variable we will use to store our instance of the Vuforia
      * localization engine.
@@ -115,13 +119,13 @@ public class AutonomousMode extends LinearOpMode{
         claw = new ClawSubsystem(new SimpleServo(hardwareMap, "servo1", 0, 300), new SimpleServo(hardwareMap, "servo2", 0, 300));
         Motor armMotor = new Motor(hardwareMap, "linearSlideMotor1", Motor.GoBILDA.RPM_312);
         arm = new ArmSubsystem(armMotor);
-        Motor.Encoder armEncoder = armMotor.encoder;
+        armEncoder = armMotor.encoder;
         //sets the distance per pulse so we can move the robot accordingly
         fL.setDistancePerPulse(0.0223214286D);
         fR.setDistancePerPulse(0.0223214286D); // this is equal to 12/537.6
         bR.setDistancePerPulse(0.0223214286D);
         bL.setDistancePerPulse(0.0223214286D);
-        robot = new RobotPosition(fL, fR, bL, bR, 0, 26, Direction.Right);
+        robot = new RobotPosition(fL, fR, bL, bR, 0, 47, Direction.Right);
         // The TFObjectDetector uses the camera frames from the VuforiaLocalizer, so we create that
         // first.
 
@@ -157,7 +161,7 @@ public class AutonomousMode extends LinearOpMode{
         while (elapsedTime.milliseconds() < 2000) {
             arm.moveup();
         }
-        double finalPosition = armEncoder.getRevolutions();
+        finalPosition = armEncoder.getRevolutions();
         while (armEncoder.getRevolutions() > 0.3) {
             arm.movedown();
         }
@@ -173,8 +177,7 @@ public class AutonomousMode extends LinearOpMode{
             arm.movedown();
             arm.stop();
             claw.closeFully();
-            moveLinear(0.6, 10);
-            moveLinear(-0.6, stoppingDistance);
+            robot.moveToPos(10,47);
             while (opModeIsActive()) {
                 //vuforia.rgb represents the image/frame given by the camera
                 if (vuforia.rgb != null) {
@@ -252,10 +255,19 @@ public class AutonomousMode extends LinearOpMode{
                 }
                 telemetry.addData("Percentage of color", percent);
 
+                if (!scoring && conesScored < 6) {
+                    scoring = true;
+                    moveToHighJunction();
+                }
 
-                if (!moved && sleeveColor!=SignalSleeveColor.NONE) {
-                    park();
-                    moved = true;
+//                if (!moved && sleeveColor!=SignalSleeveColor.NONE) {
+//                    park();
+//                    moved = true;
+//                }
+
+                if (scoring) {
+                    RobotPosition.feather(armEncoder, arm, finalPosition);
+                    scoring=false;
                 }
                 telemetry.addData("X Pos In Robot Position", robot.getX());
                 telemetry.addData("Y Pos In Robot Position", robot.getY());
@@ -263,32 +275,14 @@ public class AutonomousMode extends LinearOpMode{
             }
         }
     }
-    public void scoreMidJunction(){
-        claw.closeFully();
-        robot.moveToPos(36, 26);
-        robot.moveToPos(34, 38);
-        arm.moveup();
-        robot.moveToPos(36,38);
-        claw.openFully();
-        arm.stop();
-    }
     public void park(){
         if(sleeveColor==SignalSleeveColor.GREEN) {
-            moveLinear(0.6, 18);
-            moveLinear(-0.6, stoppingDistance);
+            robot.moveToPos(24, 47);
         }else if(sleeveColor==SignalSleeveColor.PURPLE){
-            moveLinear(-0.6, 7);
-            strafeLinear(0.6, 28);
-            strafeLinear(-0.6, stoppingDistance);
-            moveLinear(0.6, 30);
-            moveLinear(-0.6, stoppingDistance);
+            robot.moveToPos(26, 71);
         } else if(sleeveColor==SignalSleeveColor.YELLOW){
-            moveLinear(-0.6, 7);
-            strafeLinear(-0.6, 38);
-            strafeLinear(0.6, stoppingDistance);
-            moveLinear(0.6, 30);
-            moveLinear(-0.6, stoppingDistance);
-        } else{
+            robot.moveToPos(26, 23);
+        } else {
             moveLinear(0.6, 20);
         }
     }
@@ -337,9 +331,21 @@ public class AutonomousMode extends LinearOpMode{
         bR.set(0);
         bL.set(0);
 
-        robot.changeDirection(360-angle);
+//        robot.changeDirection(360-angle);
     }
-
+    public void moveToHighJunction(){
+        elapsedTime.reset();
+        while(elapsedTime.milliseconds()<=100){}
+        elapsedTime.reset();
+        robot.moveToPos(49,47);
+        turn(0.5,10);
+        while(elapsedTime.milliseconds()<=100){}
+        elapsedTime.reset();
+        robot.moveToPos(49, 63);
+        while(elapsedTime.milliseconds()<=100){}
+        elapsedTime.reset();
+        robot.moveToPos(58, 63);
+    }
     /**
      * Initialize the Vuforia localization engine.
      */

@@ -256,6 +256,7 @@ public class RobotPosition extends Position {
             backRightEncoder.reset();
             updatePlayerLocation(endX, endY);
             moveAlongX(endX);
+            backRightEncoder.reset();
             moveAlongY(endY);
             saveMap();
             saveVideo();

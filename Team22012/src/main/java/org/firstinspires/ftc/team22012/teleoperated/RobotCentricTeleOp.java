@@ -83,35 +83,59 @@ public class RobotCentricTeleOp extends OpMode {
                 -shreyController.getLeftY()*0.45*speedMultiplier,
                 -shreyController.getRightX()*0.45*speedMultiplier
         );
-
-        //this is everything that monish/arav controls
-        if (monishController.isDown(GamepadKeys.Button.A)) {
+        if (shreyController.isDown(GamepadKeys.Button.A)) {
             locked = true;
             lockedPosition = armEncoder.getRevolutions();
         }
-
-        if (monishController.isDown(GamepadKeys.Button.X) && !locked) { // if monish/arav presses X button the arm moves up
+        if (shreyController.isDown(GamepadKeys.Button.RIGHT_BUMPER)) {
+            claw.closeFully();
+        }
+        if (shreyController.isDown(GamepadKeys.Button.LEFT_BUMPER)) {
+            claw.openFully();
+        }
+        if (shreyController.getTrigger(GamepadKeys.Trigger.RIGHT_TRIGGER)>=0.1 && !locked) { // if monish/arav presses X button the arm moves up
             arm.moveup();
         }
-        else if (monishController.isDown(GamepadKeys.Button.B) && !locked){ // else if B button down then arm moves down
+        else if (shreyController.getTrigger(GamepadKeys.Trigger.LEFT_TRIGGER)>=0.1 && !locked){ // else if B button down then arm moves down
             arm.movedown();
         }
         else if (!locked){
             arm.stop(); //else don't move the arm at all
         }
 
-        if ((monishController.isDown(GamepadKeys.Button.X) || monishController.isDown(GamepadKeys.Button.B)) && locked) {
+        if ((shreyController.getTrigger(GamepadKeys.Trigger.LEFT_TRIGGER)>=0.1 || shreyController.getTrigger(GamepadKeys.Trigger.RIGHT_TRIGGER)>=0.1) && locked) {
             locked = false;
             lockedPosition = 0;
         }
 
-        if (monishController.isDown(GamepadKeys.Button.RIGHT_BUMPER)) {
-            claw.closeFully();
-        }
-        if (monishController.isDown(GamepadKeys.Button.LEFT_BUMPER)) {
-            claw.openFully();
-        }
-        if (monishController.isDown(GamepadKeys.Button.Y)) {
+        //this is everything that monish/arav controls
+//        if (monishController.isDown(GamepadKeys.Button.A)) {
+//            locked = true;
+//            lockedPosition = armEncoder.getRevolutions();
+//        }
+//
+//        if (monishController.isDown(GamepadKeys.Button.X) && !locked) { // if monish/arav presses X button the arm moves up
+//            arm.moveup();
+//        }
+//        else if (monishController.isDown(GamepadKeys.Button.B) && !locked){ // else if B button down then arm moves down
+//            arm.movedown();
+//        }
+//        else if (!locked){
+//            arm.stop(); //else don't move the arm at all
+//        }
+//
+//        if ((monishController.isDown(GamepadKeys.Button.X) || monishController.isDown(GamepadKeys.Button.B)) && locked) {
+//            locked = false;
+//            lockedPosition = 0;
+//        }
+//
+//        if (monishController.isDown(GamepadKeys.Button.RIGHT_BUMPER)) {
+//            claw.closeFully();
+//        }
+//        if (monishController.isDown(GamepadKeys.Button.LEFT_BUMPER)) {
+//            claw.openFully();
+//        }
+        if (shreyController.isDown(GamepadKeys.Button.Y)) {
             claw.closeForBeacon();
         }
 
