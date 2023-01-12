@@ -60,6 +60,7 @@ public class AutonomousMode extends LinearOpMode{
     Motor fL, fR, bL, bR;
     Motor.Encoder bLEncoder, bREncoder;
     ElapsedTime elapsedTime = new ElapsedTime();
+    ElapsedTime gameTimer = new ElapsedTime();
 
     // Experimentally determined variables
     // i did some mathematics using NO-LOAD RPM so the actual value should be theoretically lower so it matches the case below
@@ -83,7 +84,7 @@ public class AutonomousMode extends LinearOpMode{
     };
 
     int run = 0;
-    boolean moved = false;
+    boolean parked = false;
     /**
      * IMPORTANT: You need to obtain your own license key to use Vuforia. The string below with which
      * 'parameters.vuforiaLicenseKey' is initialized is for illustration only, and will not function.
@@ -157,15 +158,15 @@ public class AutonomousMode extends LinearOpMode{
         imu.initialize(parameters);
         imu.resetYaw();
 
-        elapsedTime.reset();
-        while (elapsedTime.milliseconds() < 2000) {
-            arm.moveup();
-        }
-        finalPosition = armEncoder.getRevolutions();
-        while (armEncoder.getRevolutions() > 0.3) {
-            arm.movedown();
-        }
-        arm.stop();
+//        elapsedTime.reset();
+//        while (elapsedTime.milliseconds() < 2000) {
+//            arm.moveup();
+//        }
+//        finalPosition = armEncoder.getRevolutions();
+//        while (armEncoder.getRevolutions() > 0.3) {
+//            arm.movedown();
+//        }
+//        arm.stop();
         claw.openFully();
         telemetry.addData(">", "Press Play to start op mode");
         telemetry.addData("X Pos In Robot Position", robot.getX());
@@ -174,10 +175,19 @@ public class AutonomousMode extends LinearOpMode{
         waitForStart();
 
         if (opModeIsActive()) {
+            elapsedTime.reset();
+            while (elapsedTime.milliseconds() < 2000) {
+                arm.moveup();
+            }
+            finalPosition = armEncoder.getRevolutions();
+            while (armEncoder.getRevolutions() > 0.3) {
+                arm.movedown();
+            }
+            arm.stop();
+            gameTimer.reset();
             arm.movedown();
             arm.stop();
             claw.closeFully();
-            robot.moveToPos(10,47);
             while (opModeIsActive()) {
                 //vuforia.rgb represents the image/frame given by the camera
                 if (vuforia.rgb != null) {
@@ -255,20 +265,20 @@ public class AutonomousMode extends LinearOpMode{
                 }
                 telemetry.addData("Percentage of color", percent);
 
-                if (!scoring && conesScored < 6) {
+                if (!scoring) {
                     scoring = true;
                     moveToHighJunction();
                 }
 
-//                if (!moved && sleeveColor!=SignalSleeveColor.NONE) {
-//                    park();
-//                    moved = true;
-//                }
-
-                if (scoring) {
-                    RobotPosition.feather(armEncoder, arm, finalPosition);
-                    scoring=false;
+                if (!parked && sleeveColor!=SignalSleeveColor.NONE && gameTimer.milliseconds() >= 25000) {
+                    park();
+                    parked = true;
                 }
+
+//                if (scoring) {
+//                    RobotPosition.feather(armEncoder, arm, finalPosition);
+//                    scoring=false;
+//                }
                 telemetry.addData("X Pos In Robot Position", robot.getX());
                 telemetry.addData("Y Pos In Robot Position", robot.getY());
                 telemetry.update();
@@ -277,11 +287,11 @@ public class AutonomousMode extends LinearOpMode{
     }
     public void park(){
         if(sleeveColor==SignalSleeveColor.GREEN) {
-            robot.moveToPos(24, 47);
+            robot.moveToPos(24, 47, 0.6);
         }else if(sleeveColor==SignalSleeveColor.PURPLE){
-            robot.moveToPos(26, 71);
+            robot.moveToPos(26, 71, 0.6);
         } else if(sleeveColor==SignalSleeveColor.YELLOW){
-            robot.moveToPos(26, 23);
+            robot.moveToPos(26, 23, 0.6);
         } else {
             moveLinear(0.6, 20);
         }
@@ -334,17 +344,27 @@ public class AutonomousMode extends LinearOpMode{
 //        robot.changeDirection(360-angle);
     }
     public void moveToHighJunction(){
+        robot.moveToPos(10,47, 0.6);
+        claw.closeFully();
+        elapsedTime.reset();
+        while(elapsedTime.milliseconds()<=100){}
+//        elapsedTime.reset();
+//        robot.moveToPos(49,47);
+//        while(elapsedTime.milliseconds()<=100){}
+        robot.moveToPos(48.5, 56.75, 0.3);
         elapsedTime.reset();
         while(elapsedTime.milliseconds()<=100){}
         elapsedTime.reset();
-        robot.moveToPos(49,47);
-        turn(0.5,10);
-        while(elapsedTime.milliseconds()<=100){}
+        while (elapsedTime.milliseconds() < 2000) {
+            arm.moveup();
+        }
+        robot.moveToPos(49.5, 56.75, 0.3);
         elapsedTime.reset();
-        robot.moveToPos(49, 63);
-        while(elapsedTime.milliseconds()<=100){}
+        while(elapsedTime.milliseconds()<=1000){}
+        claw.openFully();
         elapsedTime.reset();
-        robot.moveToPos(58, 63);
+        //robot.moveToPos(49.5, 55.5, 0.3);
+        arm.stop();
     }
     /**
      * Initialize the Vuforia localization engine.
