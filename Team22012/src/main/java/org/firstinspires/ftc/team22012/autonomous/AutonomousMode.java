@@ -48,7 +48,7 @@ public class AutonomousMode extends LinearOpMode{
     private boolean scoring = false;
 
     //Region of Interest that has the signal cone
-    private final Rect ROIRect = new Rect(new Point(250, 0), new Point(640, 410));
+    private final Rect ROIRect = new Rect(new Point(200, 25), new Point(600, 360));
 
     //the variable used to hold the color that the camera will detect
     private SignalSleeveColor sleeveColor;
@@ -188,69 +188,74 @@ public class AutonomousMode extends LinearOpMode{
             arm.movedown();
             arm.stop();
             claw.closeFully();
+            robot.moveToPos(6, 47, 0.6);
             while (opModeIsActive()) {
-                //vuforia.rgb represents the image/frame given by the camera
-                if (vuforia.rgb != null) {
-                    //converts image to bitmap so that OpenCV can use it to threshold
-                    Bitmap bm = Bitmap.createBitmap(vuforia.rgb.getWidth(), vuforia.rgb.getHeight(), Bitmap.Config.RGB_565);
-                    bm.copyPixelsFromBuffer(vuforia.rgb.getPixels());
+                    //vuforia.rgb represents the image/frame given by the camera
+                    if (vuforia.rgb != null) {
+                        //converts image to bitmap so that OpenCV can use it to threshold
+                        Bitmap bm = Bitmap.createBitmap(vuforia.rgb.getWidth(), vuforia.rgb.getHeight(), Bitmap.Config.RGB_565);
+                        bm.copyPixelsFromBuffer(vuforia.rgb.getPixels());
 
-                    //converts bitmap frame to OpenCV Mat class
-                    Mat img = new Mat(vuforia.rgb.getHeight(), vuforia.rgb.getWidth(), CvType.CV_8UC3);
-                    Utils.bitmapToMat(bm, img);
+                        //converts bitmap frame to OpenCV Mat class
+                        Mat img = new Mat(vuforia.rgb.getHeight(), vuforia.rgb.getWidth(), CvType.CV_8UC3);
+                        Utils.bitmapToMat(bm, img);
+                        Imgcodecs.imwrite("sdcard/FIRST/inputImg.png", img);
 
-                    //Gets the Region Of Interest that includes the Signal Cone based on where the robot starts off during the autonomous period
-                    Mat ROI = img.submat(ROIRect);
+                        //Gets the Region Of Interest that includes the Signal Cone based on where the robot starts off during the autonomous period
+                        Mat ROI = img.submat(ROIRect);
 
-                    //range of values that detects the color purple
-                    Scalar purple_lower = new Scalar(100, 50, 75);
-                    Scalar purple_upper = new Scalar(255, 255, 200);
+                        //range of values that detects the color purple
+                        Scalar purple_lower = new Scalar(100, 50, 45);
+                        Scalar purple_upper = new Scalar(255, 255, 200);
 
-                    //range of values that detects the color yellow
-                    Scalar yellow_lower = new Scalar(0, 62, 128);
-                    Scalar yellow_upper = new Scalar(45, 255, 200);
+                        //range of values that detects the color yellow
+                        Scalar yellow_lower = new Scalar(0, 62, 58);
+                        Scalar yellow_upper = new Scalar(45, 255, 200);
 
-                    //range of values that detects the color green
-                    Scalar green_lower = new Scalar(45, 0, 75);
-                    Scalar green_upper = new Scalar(90, 255, 128);
+                        //range of values that detects the color green
+                        Scalar green_lower = new Scalar(45, 0, 45);
+                        Scalar green_upper = new Scalar(90, 255, 158);
 
-                    Mat ROIHsv = new Mat();
-                    Imgproc.cvtColor(ROI, ROIHsv, Imgproc.COLOR_RGB2HSV);
+                        Mat ROIHsv = new Mat();
+                        Imgproc.cvtColor(ROI, ROIHsv, Imgproc.COLOR_RGB2HSV);
 
-                    Mat thresholdedForPurple = new Mat();
-                    Core.inRange(ROIHsv, purple_lower, purple_upper, thresholdedForPurple);
+                        Mat thresholdedForPurple = new Mat();
+                        Core.inRange(ROIHsv, purple_lower, purple_upper, thresholdedForPurple);
 
-                    Mat thresholdedForYellow = new Mat();
-                    Core.inRange(ROIHsv, yellow_lower, yellow_upper, thresholdedForYellow);
+                        Mat thresholdedForYellow = new Mat();
+                        Core.inRange(ROIHsv, yellow_lower, yellow_upper, thresholdedForYellow);
 
-                    Mat thresholdedForGreen = new Mat();
-                    Core.inRange(ROIHsv, green_lower, green_upper, thresholdedForGreen);
+                        Imgcodecs.imwrite("sdcard/FIRST/threshold.png", thresholdedForYellow);
 
-                    String filePath = "sdcard/FIRST/roiPng.png";
-                    Imgcodecs.imwrite(filePath, ROI);
+                        Mat thresholdedForGreen = new Mat();
+                        Core.inRange(ROIHsv, green_lower, green_upper, thresholdedForGreen);
 
-                    long whitePixelsGreen = Core.countNonZero(thresholdedForGreen);
-                    long whitePixelsYellow = Core.countNonZero(thresholdedForYellow);
-                    long whitePixelsPurple = Core.countNonZero(thresholdedForPurple);
+                        String filePath = "sdcard/FIRST/roiPng.png";
+                        Imgcodecs.imwrite(filePath, ROI);
 
-                    double greenValuePercent = Core.sumElems(thresholdedForGreen).val[0] / ROIRect.area() / 255;
-                    double yellowValuePercent = Core.sumElems(thresholdedForYellow).val[0] / ROIRect.area() / 255;
-                    double purpleValuePercent = Core.sumElems(thresholdedForPurple).val[0] / ROIRect.area() / 255;
+                        long whitePixelsGreen = Core.countNonZero(thresholdedForGreen);
+                        long whitePixelsYellow = Core.countNonZero(thresholdedForYellow);
+                        long whitePixelsPurple = Core.countNonZero(thresholdedForPurple);
 
-                    if (whitePixelsPurple > whitePixelsYellow && whitePixelsPurple > whitePixelsGreen && Math.round(purpleValuePercent * 100) >= 20) {
-                        sleeveColor = SignalSleeveColor.PURPLE;
-                        percent = Math.round(purpleValuePercent * 100);
-                    } else if (whitePixelsYellow > whitePixelsPurple && whitePixelsYellow > whitePixelsGreen && Math.round(yellowValuePercent * 100) >= 20) {
-                        sleeveColor = SignalSleeveColor.YELLOW;
-                        percent = Math.round(yellowValuePercent * 100);
-                    } else if (whitePixelsGreen > whitePixelsPurple && whitePixelsGreen > whitePixelsYellow && Math.round(greenValuePercent * 100) >= 20) {
-                        sleeveColor = SignalSleeveColor.GREEN;
-                        percent = Math.round(greenValuePercent * 100);
-                    } else {
-                        sleeveColor = SignalSleeveColor.NONE;
-                        percent = 0;
+                        double greenValuePercent = Core.sumElems(thresholdedForGreen).val[0] / ROIRect.area() / 255;
+                        double yellowValuePercent = Core.sumElems(thresholdedForYellow).val[0] / ROIRect.area() / 255;
+                        double purpleValuePercent = Core.sumElems(thresholdedForPurple).val[0] / ROIRect.area() / 255;
+
+                        if (whitePixelsPurple > whitePixelsYellow && whitePixelsPurple > whitePixelsGreen && Math.round(purpleValuePercent * 100) >= 20) {
+                            sleeveColor = SignalSleeveColor.PURPLE;
+                            percent = Math.round(purpleValuePercent * 100);
+                        } else if (whitePixelsYellow > whitePixelsPurple && whitePixelsYellow > whitePixelsGreen && Math.round(yellowValuePercent * 100) >= 20) {
+                            sleeveColor = SignalSleeveColor.YELLOW;
+                            percent = Math.round(yellowValuePercent * 100);
+                        } else if (whitePixelsGreen > whitePixelsPurple && whitePixelsGreen > whitePixelsYellow && Math.round(greenValuePercent * 100) >= 20) {
+                            sleeveColor = SignalSleeveColor.GREEN;
+                            percent = Math.round(greenValuePercent * 100);
+                        } else {
+                            sleeveColor = SignalSleeveColor.NONE;
+                            percent = 0;
+                        }
                     }
-                }
+
                 if (sleeveColor == SignalSleeveColor.GREEN) {
                     telemetry.addData("location is", "green");
                 }
@@ -266,14 +271,14 @@ public class AutonomousMode extends LinearOpMode{
                 telemetry.addData("Percentage of color", percent);
 
                 if (!scoring) {
-                    scoring = true;
                     moveToHighJunction();
+                    scoring = true;
                 }
 
-                if (!parked && sleeveColor!=SignalSleeveColor.NONE && gameTimer.milliseconds() >= 25000) {
+                if (!parked && sleeveColor!=SignalSleeveColor.NONE && scoring) {
                     park();
                     parked = true;
-                }
+                  }
 
 //                if (scoring) {
 //                    RobotPosition.feather(armEncoder, arm, finalPosition);
@@ -286,14 +291,16 @@ public class AutonomousMode extends LinearOpMode{
         }
     }
     public void park(){
+        robot.moveToPos(48, 40, 0.6);
+        turn(-0.6, 7);
         if(sleeveColor==SignalSleeveColor.GREEN) {
-            robot.moveToPos(24, 47, 0.6);
+            robot.moveToPos(30, 40, 0.6);
         }else if(sleeveColor==SignalSleeveColor.PURPLE){
-            robot.moveToPos(26, 71, 0.6);
+            robot.moveToPos(30, 68, 0.6);
         } else if(sleeveColor==SignalSleeveColor.YELLOW){
-            robot.moveToPos(26, 23, 0.6);
+            robot.moveToPos(30, 13, 0.6);
         } else {
-            moveLinear(0.6, 20);
+            moveLinear(-0.6, 20);
         }
     }
     public void moveLinear(double power, double distance) {
@@ -344,26 +351,22 @@ public class AutonomousMode extends LinearOpMode{
 //        robot.changeDirection(360-angle);
     }
     public void moveToHighJunction(){
-        robot.moveToPos(10,47, 0.6);
         claw.closeFully();
         elapsedTime.reset();
         while(elapsedTime.milliseconds()<=100){}
-//        elapsedTime.reset();
-//        robot.moveToPos(49,47);
-//        while(elapsedTime.milliseconds()<=100){}
-        robot.moveToPos(48.5, 56.75, 0.3);
-        elapsedTime.reset();
-        while(elapsedTime.milliseconds()<=100){}
+        robot.moveToPos(48, 56.25, 0.3);
         elapsedTime.reset();
         while (elapsedTime.milliseconds() < 2000) {
             arm.moveup();
         }
-        robot.moveToPos(49.5, 56.75, 0.3);
+        robot.moveToPos(49, 58.75, 0.3);
         elapsedTime.reset();
         while(elapsedTime.milliseconds()<=1000){}
         claw.openFully();
         elapsedTime.reset();
         //robot.moveToPos(49.5, 55.5, 0.3);
+        arm.stop();
+        arm.movedown();
         arm.stop();
     }
     /**

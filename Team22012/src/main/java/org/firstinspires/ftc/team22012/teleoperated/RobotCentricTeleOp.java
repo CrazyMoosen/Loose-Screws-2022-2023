@@ -73,7 +73,7 @@ public class RobotCentricTeleOp extends OpMode {
     @Override
     public void loop() {
         bREncoder.setDistancePerPulse(0.0223214286D); //this shows correct distance in inches
-        double speedMultiplier = 1.0;
+        double speedMultiplier = 1.2;
         //if shrey presses the B button he can boost the speed of the drivetrain
         if (shreyController.isDown(GamepadKeys.Button.B)) {
             speedMultiplier = 1.5;
@@ -83,27 +83,27 @@ public class RobotCentricTeleOp extends OpMode {
                 -shreyController.getLeftY()*0.45*speedMultiplier,
                 -shreyController.getRightX()*0.45*speedMultiplier
         );
-        if (shreyController.isDown(GamepadKeys.Button.A)) {
+        if (monishController.isDown(GamepadKeys.Button.A)) {
             locked = true;
             lockedPosition = armEncoder.getRevolutions();
         }
-        if (shreyController.isDown(GamepadKeys.Button.RIGHT_BUMPER)) {
+        if (monishController.isDown(GamepadKeys.Button.RIGHT_BUMPER)) {
             claw.closeFully();
         }
-        if (shreyController.isDown(GamepadKeys.Button.LEFT_BUMPER)) {
+        if (monishController.isDown(GamepadKeys.Button.LEFT_BUMPER)) {
             claw.openFully();
         }
-        if (shreyController.getTrigger(GamepadKeys.Trigger.RIGHT_TRIGGER)>=0.1 && !locked) { // if monish/arav presses X button the arm moves up
+        if (monishController.getTrigger(GamepadKeys.Trigger.RIGHT_TRIGGER)>=0.1 && !locked) { // if monish/arav presses X button the arm moves up
             arm.moveup();
         }
-        else if (shreyController.getTrigger(GamepadKeys.Trigger.LEFT_TRIGGER)>=0.1 && !locked){ // else if B button down then arm moves down
+        else if (monishController.getTrigger(GamepadKeys.Trigger.LEFT_TRIGGER)>=0.1 && !locked){ // else if B button down then arm moves down
             arm.movedown();
         }
         else if (!locked){
             arm.stop(); //else don't move the arm at all
         }
 
-        if ((shreyController.getTrigger(GamepadKeys.Trigger.LEFT_TRIGGER)>=0.1 || shreyController.getTrigger(GamepadKeys.Trigger.RIGHT_TRIGGER)>=0.1) && locked) {
+        if ((monishController.getTrigger(GamepadKeys.Trigger.LEFT_TRIGGER)>=0.1 || monishController.getTrigger(GamepadKeys.Trigger.RIGHT_TRIGGER)>=0.1) && locked) {
             locked = false;
             lockedPosition = 0;
         }

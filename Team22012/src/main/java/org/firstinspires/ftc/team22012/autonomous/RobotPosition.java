@@ -233,21 +233,21 @@ public class RobotPosition extends Position {
     }
 
     public boolean legiblePosition(Rect robot) {
-        for (int i = 0; i < 8; i++) {
-            if (robot.contains(lowJunctionPositions[i][0], lowJunctionPositions[i][1])) {
-                return false;
-            }
-        }
-        for (int i = 0; i < 4; i++) {
-            if (robot.contains(mediumJunctionPositions[i][0], mediumJunctionPositions[i][1])) {
-                return false;
-            }
-        }
-        for (int i = 0; i < 4; i++) {
-            if (robot.contains(highJunctionPositions[i][0], highJunctionPositions[i][1])) {
-                return false;
-            }
-        }
+//        for (int i = 0; i < 8; i++) {
+//            if (robot.contains(lowJunctionPositions[i][0], lowJunctionPositions[i][1])) {
+//                return false;
+//            }
+//        }
+//        for (int i = 0; i < 4; i++) {
+//            if (robot.contains(mediumJunctionPositions[i][0], mediumJunctionPositions[i][1])) {
+//                return false;
+//            }
+//        }
+//        for (int i = 0; i < 4; i++) {
+//            if (robot.contains(highJunctionPositions[i][0], highJunctionPositions[i][1])) {
+//                return false;
+//            }
+//        }
         return true;
     }
 
@@ -324,7 +324,7 @@ public class RobotPosition extends Position {
     public static void moveLinearUsingEncoders(@NonNull Motor.Encoder bREncoder, MecanumDrive mecanumDrive, boolean forward, double distance, double power) {
         if (forward) {
             while (bREncoder.getRevolutions() < distance / 12.0D) {
-                if (bREncoder.getRevolutions() < (distance / 12.0D - 1.3)) {
+                if (bREncoder.getRevolutions() < (distance / 12.0D - 0.2)) {
                     mecanumDrive.driveRobotCentric(0, -power, 0); //moves backward
                 } else {
                     mecanumDrive.driveRobotCentric(0, -power, 0); //moves backward
@@ -348,7 +348,7 @@ public class RobotPosition extends Position {
         bREncoder.setDistancePerPulse(42.2983046);
         if (right) {
             while (bREncoder.getRevolutions() <= distance / 12.0D) {
-                if (bREncoder.getRevolutions() <= (distance / 12.0 - 0.2D)) {
+                if (bREncoder.getRevolutions() <= (distance / 12.0 - 0.1D)) {
                     mecanumDrive.driveRobotCentric(-power, 0, 0);
                 } else {
                     mecanumDrive.driveRobotCentric(-power, 0, 0);
