@@ -252,14 +252,14 @@ public class RobotPosition extends Position {
     }
 
     public void moveToPos(double endX, double endY) {
-//        if (canMoveToPosition(endX, endY)) {
+        if (canMoveToPosition(endX, endY)) {
             backRightEncoder.reset();
             updatePlayerLocation(endX, endY);
             moveAlongX(endX);
             moveAlongY(endY);
             saveMap();
             saveVideo();
-//        }
+        }
     }
 
     //moves the robot along the x-axis
@@ -347,7 +347,7 @@ public class RobotPosition extends Position {
         bREncoder.setDistancePerPulse(42.2983046);
         if (right) {
             while (bREncoder.getRevolutions() <= distance / 12.0D) {
-                if (bREncoder.getRevolutions() <= (distance / 12.0)) {
+                if (bREncoder.getRevolutions() <= (distance / 12.0)-0.083) {
                     mecanumDrive.driveRobotCentric(-0.6, 0, 0);
                 } else {
                     mecanumDrive.driveRobotCentric(-0.1, 0, 0);
@@ -358,7 +358,7 @@ public class RobotPosition extends Position {
         }
         else {
             while (bREncoder.getRevolutions() >= -distance / 12.0D) {
-                if (bREncoder.getRevolutions() >= (-distance / 12.0)) {
+                if (bREncoder.getRevolutions() >= (-distance / 12.0+0.083)) {
                     mecanumDrive.driveRobotCentric(0.6, 0, 0);
                 } else {
                     mecanumDrive.driveRobotCentric(0.1, 0, 0);

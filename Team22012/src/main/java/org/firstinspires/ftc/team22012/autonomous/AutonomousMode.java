@@ -1,6 +1,7 @@
 package org.firstinspires.ftc.team22012.autonomous;
 
 import static java.lang.Math.abs;
+import static java.lang.Math.toDegrees;
 
 import android.graphics.Bitmap;
 
@@ -54,13 +55,14 @@ public class AutonomousMode extends LinearOpMode{
     //actually is
     double percent = 0;
     Motor fL, fR, bL, bR;
-    Motor.Encoder bLEncoder, bREncoder;
+    Motor.Encoder bLEncoder, bREncoder, armEncoder;
     ElapsedTime elapsedTime = new ElapsedTime();
 
     // Experimentally determined variables
     // i did some mathematics using NO-LOAD RPM so the actual value should be theoretically lower so it matches the case below
     // 312 rotation/min * 1 min/60 seconds * 11.8736494 inches/revolution = 61.74297688 inches/sec
     final double speed = 55; // In inches/sec
+    double finalPosition = 0;
 
     final double stoppingDistance = 2.1; // In inches, the distance it takes to stop the robot travelling
     // at the power of 0.6
@@ -79,7 +81,8 @@ public class AutonomousMode extends LinearOpMode{
     };
 
     int run = 0;
-    boolean moved = false;
+    boolean scored = false;
+    boolean parked = false;
     /**
      * IMPORTANT: You need to obtain your own license key to use Vuforia. The string below with which
      * 'parameters.vuforiaLicenseKey' is initialized is for illustration only, and will not function.
@@ -115,13 +118,13 @@ public class AutonomousMode extends LinearOpMode{
         claw = new ClawSubsystem(new SimpleServo(hardwareMap, "servo1", 0, 300), new SimpleServo(hardwareMap, "servo2", 0, 300));
         Motor armMotor = new Motor(hardwareMap, "linearSlideMotor1", Motor.GoBILDA.RPM_312);
         arm = new ArmSubsystem(armMotor);
-        Motor.Encoder armEncoder = armMotor.encoder;
+        armEncoder = armMotor.encoder;
         //sets the distance per pulse so we can move the robot accordingly
         fL.setDistancePerPulse(0.0223214286D);
         fR.setDistancePerPulse(0.0223214286D); // this is equal to 12/537.6
         bR.setDistancePerPulse(0.0223214286D);
         bL.setDistancePerPulse(0.0223214286D);
-        robot = new RobotPosition(fL, fR, bL, bR, 0, 26, Direction.Right);
+        robot = new RobotPosition(fL, fR, bL, bR, 0, 45, Direction.Right);
         // The TFObjectDetector uses the camera frames from the VuforiaLocalizer, so we create that
         // first.
 
@@ -153,16 +156,7 @@ public class AutonomousMode extends LinearOpMode{
         imu.initialize(parameters);
         imu.resetYaw();
 
-        elapsedTime.reset();
-        while (elapsedTime.milliseconds() < 2000) {
-            arm.moveup();
-        }
-        double finalPosition = armEncoder.getRevolutions();
-        while (armEncoder.getRevolutions() > 0.3) {
-            arm.movedown();
-        }
-        arm.stop();
-        claw.openFully();
+
         telemetry.addData(">", "Press Play to start op mode");
         telemetry.addData("X Pos In Robot Position", robot.getX());
         telemetry.addData("Y Pos In Robot Position", robot.getY());
@@ -170,11 +164,20 @@ public class AutonomousMode extends LinearOpMode{
         waitForStart();
 
         if (opModeIsActive()) {
+            elapsedTime.reset();
+            while (elapsedTime.milliseconds() < 2000) {
+                arm.moveup();
+            }
+            double finalPosition = armEncoder.getRevolutions();
+            while (armEncoder.getRevolutions() > 0.3) {
+                arm.movedown();
+            }
+            arm.stop();
+            claw.openFully();
             arm.movedown();
             arm.stop();
             claw.closeFully();
-            moveLinear(0.6, 10);
-            moveLinear(-0.6, stoppingDistance);
+            robot.moveToPos(10,45);
             while (opModeIsActive()) {
                 //vuforia.rgb represents the image/frame given by the camera
                 if (vuforia.rgb != null) {
@@ -251,45 +254,42 @@ public class AutonomousMode extends LinearOpMode{
                     telemetry.addData("location is", "none");
                 }
                 telemetry.addData("Percentage of color", percent);
-
-
-                if (!moved && sleeveColor!=SignalSleeveColor.NONE) {
-                    park();
-                    moved = true;
+                robot.moveToPos(0,45);
+                if(!scored) {
+                    scorepreloaded();
+                    scored=true;
                 }
+                if (!parked){
+                    park();
+                    parked=true;
+                }
+
                 telemetry.addData("X Pos In Robot Position", robot.getX());
                 telemetry.addData("Y Pos In Robot Position", robot.getY());
                 telemetry.update();
             }
         }
     }
-    public void scoreMidJunction(){
-        claw.closeFully();
-        robot.moveToPos(36, 26);
-        robot.moveToPos(34, 38);
-        arm.moveup();
-        robot.moveToPos(36,38);
+    public void scorepreloaded() {
+        robot.moveToPos(50, 45);
+        robot.moveToPos(50, 54.5);
+        robot.moveToPos(52.5, 54.5);
+        elapsedTime.reset();
+        while(elapsedTime.milliseconds()<=3000) {
+            arm.moveup();
+        }
+        robot.moveToPos(56, 54.5);
         claw.openFully();
-        arm.stop();
+        arm.movedown();
     }
+
     public void park(){
-        if(sleeveColor==SignalSleeveColor.GREEN) {
-            moveLinear(0.6, 18);
-            moveLinear(-0.6, stoppingDistance);
-        }else if(sleeveColor==SignalSleeveColor.PURPLE){
-            moveLinear(-0.6, 7);
-            strafeLinear(0.6, 28);
-            strafeLinear(-0.6, stoppingDistance);
-            moveLinear(0.6, 30);
-            moveLinear(-0.6, stoppingDistance);
-        } else if(sleeveColor==SignalSleeveColor.YELLOW){
-            moveLinear(-0.6, 7);
-            strafeLinear(-0.6, 38);
-            strafeLinear(0.6, stoppingDistance);
-            moveLinear(0.6, 30);
-            moveLinear(-0.6, stoppingDistance);
-        } else{
-            moveLinear(0.6, 20);
+        if (sleeveColor==SignalSleeveColor.GREEN){
+            robot.moveToPos(48,42);
+        }else if (sleeveColor==SignalSleeveColor.PURPLE){
+            robot.moveToPos(48,68);
+        }else if (sleeveColor==SignalSleeveColor.YELLOW){
+            robot.moveToPos(48,2);
         }
     }
     public void moveLinear(double power, double distance) {
