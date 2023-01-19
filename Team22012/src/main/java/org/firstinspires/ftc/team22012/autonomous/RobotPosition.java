@@ -233,72 +233,71 @@ public class RobotPosition extends Position {
     }
 
     public boolean legiblePosition(Rect robot) {
-//        for (int i = 0; i < 8; i++) {
-//            if (robot.contains(lowJunctionPositions[i][0], lowJunctionPositions[i][1])) {
-//                return false;
-//            }
-//        }
-//        for (int i = 0; i < 4; i++) {
-//            if (robot.contains(mediumJunctionPositions[i][0], mediumJunctionPositions[i][1])) {
-//                return false;
-//            }
-//        }
-//        for (int i = 0; i < 4; i++) {
-//            if (robot.contains(highJunctionPositions[i][0], highJunctionPositions[i][1])) {
-//                return false;
-//            }
-//        }
+        for (int i = 0; i < 8; i++) {
+            if (robot.contains(lowJunctionPositions[i][0], lowJunctionPositions[i][1])) {
+                return false;
+            }
+        }
+        for (int i = 0; i < 4; i++) {
+            if (robot.contains(mediumJunctionPositions[i][0], mediumJunctionPositions[i][1])) {
+                return false;
+            }
+        }
+        for (int i = 0; i < 4; i++) {
+            if (robot.contains(highJunctionPositions[i][0], highJunctionPositions[i][1])) {
+                return false;
+            }
+        }
         return true;
     }
 
-    public void moveToPos(double endX, double endY, double power) {
-        if (canMoveToPosition(endX, endY)) {
+    public void moveToPos(double endX, double endY) {
+//        if (canMoveToPosition(endX, endY)) {
             backRightEncoder.reset();
             updatePlayerLocation(endX, endY);
-            moveAlongX(endX, power);
-            backRightEncoder.reset();
-            moveAlongY(endY, power);
+            moveAlongX(endX);
+            moveAlongY(endY);
             saveMap();
             saveVideo();
-        }
+//        }
     }
 
     //moves the robot along the x-axis
-    private void moveAlongX(double endX, double power) {
+    private void moveAlongX(double endX) {
         if (endX != x && endX <= 144 && endX >= 0) {
             boolean magnitude = endX > x;
             if (direction == Direction.Right) {
-                moveLinearUsingEncoders(backRightEncoder, mecanumDrive, magnitude, Math.abs(endX - x), power);
+                moveLinearUsingEncoders(backRightEncoder, mecanumDrive, magnitude, Math.abs(endX - x));
             }
             if (direction == Direction.Left) {
-                moveLinearUsingEncoders(backRightEncoder, mecanumDrive, !magnitude, Math.abs(endX - x), power);
+                moveLinearUsingEncoders(backRightEncoder, mecanumDrive, !magnitude, Math.abs(endX - x));
             }
             if (direction == Direction.Up) {
-                strafeLinearUsingEncoders(backRightEncoder, mecanumDrive, magnitude, Math.abs(endX - x), power);
+                strafeLinearUsingEncoders(backRightEncoder, mecanumDrive, magnitude, Math.abs(endX - x));
             }
             if (direction == Direction.Down) {
-                strafeLinearUsingEncoders(backRightEncoder, mecanumDrive, !magnitude, Math.abs(endX - x), power);
+                strafeLinearUsingEncoders(backRightEncoder, mecanumDrive, !magnitude, Math.abs(endX - x));
             }
             setX(endX);
         }
     }
 
     //moves the robot along the y-axis
-    private void moveAlongY(double endY, double power) {
+    private void moveAlongY(double endY) {
         if (endY != y) {
             boolean magnitude = endY > y;
             double dist = Math.abs(endY - y);
             if (direction == Direction.Right) {
-                strafeLinearUsingEncoders(backRightEncoder, mecanumDrive, magnitude, dist, power);
+                strafeLinearUsingEncoders(backRightEncoder, mecanumDrive, magnitude, dist);
             }
             if (direction == Direction.Left) {
-                strafeLinearUsingEncoders(backRightEncoder, mecanumDrive, !magnitude, dist, power);
+                strafeLinearUsingEncoders(backRightEncoder, mecanumDrive, !magnitude, dist);
             }
             if (direction == Direction.Up) {
-                moveLinearUsingEncoders(backRightEncoder, mecanumDrive, !magnitude, dist, power);
+                moveLinearUsingEncoders(backRightEncoder, mecanumDrive, !magnitude, dist);
             }
             if (direction == Direction.Down) {
-                moveLinearUsingEncoders(backRightEncoder, mecanumDrive, magnitude, dist, power);
+                moveLinearUsingEncoders(backRightEncoder, mecanumDrive, magnitude, dist);
             }
             setY(endY);
         }
@@ -321,37 +320,37 @@ public class RobotPosition extends Position {
     }
 
     //this is accurate very much
-    public static void moveLinearUsingEncoders(@NonNull Motor.Encoder bREncoder, MecanumDrive mecanumDrive, boolean forward, double distance, double power) {
+    public static void moveLinearUsingEncoders(@NonNull Motor.Encoder bREncoder, MecanumDrive mecanumDrive, boolean forward, double distance) {
         if (forward) {
             while (bREncoder.getRevolutions() < distance / 12.0D) {
-                if (bREncoder.getRevolutions() < (distance / 12.0D - 0.2)) {
-                    mecanumDrive.driveRobotCentric(0, -power, 0); //moves backward
+                if (bREncoder.getRevolutions() < (distance / 12.0D -1.5 )) {
+                    mecanumDrive.driveRobotCentric(0, -0.6, 0); //moves backward
                 } else {
-                    mecanumDrive.driveRobotCentric(0, -power, 0); //moves backward
+                    mecanumDrive.driveRobotCentric(0, -0.2, 0); //moves backward
                 }
             }
             mecanumDrive.driveRobotCentric(0, 0, 0);
         }
         else {
             while (bREncoder.getRevolutions() > -distance/12.0D) {
-                if (bREncoder.getRevolutions() > ((-distance / 12.0D) + 1.3)) {
-                    mecanumDrive.driveRobotCentric(0, power, 0); //moves backward
+                if (bREncoder.getRevolutions() > ((-distance / 12.0D) + 1.5)) {
+                    mecanumDrive.driveRobotCentric(0, 0.6, 0); //moves backward
                 } else {
-                    mecanumDrive.driveRobotCentric(0, power, 0); //moves backward
+                    mecanumDrive.driveRobotCentric(0, 0.2, 0); //moves backward
                 }
             }
             mecanumDrive.driveRobotCentric(0, 0 ,0);
         }
     }
 
-    public static void strafeLinearUsingEncoders(@NonNull Motor.Encoder bREncoder, MecanumDrive mecanumDrive, boolean right, double distance, double power) {
+    public static void strafeLinearUsingEncoders(@NonNull Motor.Encoder bREncoder, MecanumDrive mecanumDrive, boolean right, double distance) {
         bREncoder.setDistancePerPulse(42.2983046);
         if (right) {
             while (bREncoder.getRevolutions() <= distance / 12.0D) {
-                if (bREncoder.getRevolutions() <= (distance / 12.0 - 0.1D)) {
-                    mecanumDrive.driveRobotCentric(-power, 0, 0);
+                if (bREncoder.getRevolutions() <= (distance / 12.0)) {
+                    mecanumDrive.driveRobotCentric(-0.6, 0, 0);
                 } else {
-                    mecanumDrive.driveRobotCentric(-power, 0, 0);
+                    mecanumDrive.driveRobotCentric(-0.1, 0, 0);
 
                 }
             }
@@ -359,10 +358,10 @@ public class RobotPosition extends Position {
         }
         else {
             while (bREncoder.getRevolutions() >= -distance / 12.0D) {
-                if (bREncoder.getRevolutions() >= (-distance / 12.0 + 0.3D)) {
-                    mecanumDrive.driveRobotCentric(power, 0, 0);
+                if (bREncoder.getRevolutions() >= (-distance / 12.0)) {
+                    mecanumDrive.driveRobotCentric(0.6, 0, 0);
                 } else {
-                    mecanumDrive.driveRobotCentric(power, 0, 0);
+                    mecanumDrive.driveRobotCentric(0.1, 0, 0);
 
                 }
             }
