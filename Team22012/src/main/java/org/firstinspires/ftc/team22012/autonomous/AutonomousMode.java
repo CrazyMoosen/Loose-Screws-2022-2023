@@ -1,7 +1,6 @@
 package org.firstinspires.ftc.team22012.autonomous;
 
 import static java.lang.Math.abs;
-import static java.lang.Math.toDegrees;
 
 import android.graphics.Bitmap;
 
@@ -57,6 +56,7 @@ public class AutonomousMode extends LinearOpMode{
     Motor fL, fR, bL, bR;
     Motor.Encoder bLEncoder, bREncoder, armEncoder;
     ElapsedTime elapsedTime = new ElapsedTime();
+    ElapsedTime gameTimer = new ElapsedTime();
 
     // Experimentally determined variables
     // i did some mathematics using NO-LOAD RPM so the actual value should be theoretically lower so it matches the case below
@@ -66,7 +66,7 @@ public class AutonomousMode extends LinearOpMode{
 
     final double stoppingDistance = 2.1; // In inches, the distance it takes to stop the robot travelling
     // at the power of 0.6
-    final double degPerSec = 150;
+    final double degPerSec = 137;
 
     private RobotPosition robot;
 
@@ -83,6 +83,7 @@ public class AutonomousMode extends LinearOpMode{
     int run = 0;
     boolean scored = false;
     boolean parked = false;
+
     /**
      * IMPORTANT: You need to obtain your own license key to use Vuforia. The string below with which
      * 'parameters.vuforiaLicenseKey' is initialized is for illustration only, and will not function.
@@ -106,6 +107,8 @@ public class AutonomousMode extends LinearOpMode{
     private TFObjectDetector tfod;
     private ClawSubsystem claw;
     private ArmSubsystem arm;
+    private MecanumDrive mecanumDrive;
+    private BHI260IMU imu;
     @Override
     public void runOpMode() {
         //Initializes all the motors
@@ -127,7 +130,7 @@ public class AutonomousMode extends LinearOpMode{
         robot = new RobotPosition(fL, fR, bL, bR, 0, 45, Direction.Right);
         // The TFObjectDetector uses the camera frames from the VuforiaLocalizer, so we create that
         // first.
-
+        mecanumDrive = new MecanumDrive(fL,fR,bL,bR);
         initVuforia();
         initTfod();
 
@@ -147,7 +150,7 @@ public class AutonomousMode extends LinearOpMode{
             tfod.setZoom(1.0, 16.0 / 9.0);
         }
 
-        BHI260IMU imu = hardwareMap.get(BHI260IMU.class, "imu");
+         imu = hardwareMap.get(BHI260IMU.class, "imu");
         IMU.Parameters parameters = new IMU.Parameters(
                 new RevHubOrientationOnRobot(
                         RevHubOrientationOnRobot.LogoFacingDirection.UP, //Orthogonal #9 in the docs
@@ -165,19 +168,25 @@ public class AutonomousMode extends LinearOpMode{
 
         if (opModeIsActive()) {
             elapsedTime.reset();
-            while (elapsedTime.milliseconds() < 2000) {
+            gameTimer.reset();
+            while (armEncoder.getRevolutions() < arm.finalPosition) {
                 arm.moveup();
             }
-            double finalPosition = armEncoder.getRevolutions();
-            while (armEncoder.getRevolutions() > 0.3) {
+            elapsedTime.reset();
+            while (elapsedTime.milliseconds() < 2000) {
                 arm.movedown();
             }
-            arm.stop();
-            claw.openFully();
-            arm.movedown();
+//            if (armEncoder.getRevolutions() > 0.3) {
+//                arm.movedown();
+//            }
+//            arm.stop();
+//            claw.openFully();
+//            if (armEncoder.getRevolutions() > 0.10) {
+//                arm.movedown();
+//            }
             arm.stop();
             claw.closeFully();
-            robot.moveToPos(10,45);
+            robot.moveToPos(7,45);
             while (opModeIsActive()) {
                 //vuforia.rgb represents the image/frame given by the camera
                 if (vuforia.rgb != null) {
@@ -254,43 +263,101 @@ public class AutonomousMode extends LinearOpMode{
                     telemetry.addData("location is", "none");
                 }
                 telemetry.addData("Percentage of color", percent);
-                robot.moveToPos(0,45);
-                if(!scored) {
-                    scorepreloaded();
-                    scored=true;
+                robot.moveToPos(7, 43);
+                elapsedTime.reset();
+                while(elapsedTime.milliseconds()<150 && opModeIsActive()){
+
                 }
-                if (!parked){
+                if (!scored && opModeIsActive()) {
+                    scoreOnHighJunction();
+                    scored = true;
+                }
+//                while (gameTimer.milliseconds() <= 21000){
+//                    Getcone();
+//                    scoreOnHighJunction();
+//            }
+                if (!parked&&opModeIsActive()){
                     park();
                     parked=true;
                 }
-
                 telemetry.addData("X Pos In Robot Position", robot.getX());
                 telemetry.addData("Y Pos In Robot Position", robot.getY());
                 telemetry.update();
             }
         }
     }
-    public void scorepreloaded() {
-        robot.moveToPos(50, 45);
-        robot.moveToPos(50, 54.5);
+    public void scoreOnHighJunction() {
+        robot.moveToPos(52.5, 45);
         robot.moveToPos(52.5, 54.5);
         elapsedTime.reset();
-        while(elapsedTime.milliseconds()<=3000) {
+        while (armEncoder.getRevolutions() < arm.finalPosition-0.75) {
             arm.moveup();
         }
-        robot.moveToPos(56, 54.5);
+        arm.stallarm();
+        robot.moveToPos(56, 54);
         claw.openFully();
         arm.movedown();
-    }
+        arm.stop();
+        robot.moveToPos(50, 54);
+//        robot.moveToPos(50,42.5);`
+//        turn(0.6, 90);
+//        robot.setX(64);
+//        robot.moveToPos(64, 24.5);
+//        elapsedTime.reset();
+//        while (elapsedTime.milliseconds() <= 250) {
+//            arm.moveup();
+//        }
+//        robot.moveToPos(64, 19);
+//        claw.openFully();
+//        arm.movedown();
+//        claw.closeFully();
+//        elapsedTime.reset();
+//        while (elapsedTime.milliseconds() <= 250) {
+//            arm.moveup();
+//        }
+//        robot.moveToPos(64,54.5);
+//        turn(-0.6,90);
+//        robot.setX(50);
+//        robot.moveToPos(52.5, 54.5);
+//        arm.movedown();
+//        claw.openFully();
+//        robot.moveToPos(52.5,43);
+//        robot.moveToPos(52.5,43);
 
+    }
+    public void center(){
+        double centerX = robot.getX() - (robot.getX() % 24) + 5;
+        double centerY = robot.getY() - (robot.getY() % 24) + 19;
+        robot.moveToPos(centerX, centerY);
+    }
     public void park(){
+        center();
         if (sleeveColor==SignalSleeveColor.GREEN){
             robot.moveToPos(48,42);
         }else if (sleeveColor==SignalSleeveColor.PURPLE){
-            robot.moveToPos(48,68);
+
         }else if (sleeveColor==SignalSleeveColor.YELLOW){
             robot.moveToPos(48,2);
         }
+    }
+    public void getCone(){
+        robot.moveToPos(51,24);
+        //TURN NEEDED
+
+        claw.openFully();
+        elapsedTime.reset();
+        while(elapsedTime.milliseconds()<=1000) {
+            arm.moveup();
+        }
+        robot.moveToPos(68, 17);
+        elapsedTime.reset();
+        while(elapsedTime.milliseconds()<=750) {
+            arm.movedown();
+        }
+        claw.closeFully();
+//TURN NEEDED
+
+        center();
     }
     public void moveLinear(double power, double distance) {
         // This code will move backward if the power is negative
@@ -323,7 +390,7 @@ public class AutonomousMode extends LinearOpMode{
     }
 
     public void turn(double power, double angle){
-        // turns counterclockwise negative power for clockwise
+        // turns counterclocise negative power for clockwise
         elapsedTime.reset();
         double time  = angle / degPerSec;
         while (elapsedTime.milliseconds() < time * 1000) {

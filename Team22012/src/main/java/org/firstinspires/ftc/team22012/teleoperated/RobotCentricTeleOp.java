@@ -93,10 +93,11 @@ public class RobotCentricTeleOp extends OpMode {
         if (monishController.isDown(GamepadKeys.Button.LEFT_BUMPER)) {
             claw.openFully();
         }
-        if (monishController.getTrigger(GamepadKeys.Trigger.RIGHT_TRIGGER)>=0.1 && !locked) { // if monish/arav presses X button the arm moves up
+
+        if (armEncoder.getRevolutions() <= 5.6 && monishController.getTrigger(GamepadKeys.Trigger.RIGHT_TRIGGER)>=0.1 && !locked) { // if monish/arav presses X button the arm moves up
             arm.moveup();
         }
-        else if (monishController.getTrigger(GamepadKeys.Trigger.LEFT_TRIGGER)>=0.1 && !locked){ // else if B button down then arm moves down
+        else if (armEncoder.getRevolutions() <= 5.6 && monishController.getTrigger(GamepadKeys.Trigger.LEFT_TRIGGER)>=0.1 && !locked){ // else if B button down then arm moves down
             arm.movedown();
         }
         else if (!locked){

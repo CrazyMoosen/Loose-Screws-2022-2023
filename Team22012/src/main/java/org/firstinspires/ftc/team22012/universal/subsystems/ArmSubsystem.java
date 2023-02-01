@@ -9,6 +9,7 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 
 public class ArmSubsystem extends SubsystemBase {
     private final Motor linearSlideMotor;
+    public double finalPosition = 5.6;
 
     //the position of the linear slide
     ElapsedTime elapsedTime = new ElapsedTime();
@@ -31,13 +32,15 @@ public class ArmSubsystem extends SubsystemBase {
     public void movedown() {
         linearSlideMotor.set(-1);
     } //for testing purposes i put 1 we can change to slower later
-
+    public void stallarm(){
+        linearSlideMotor.set(0.15);
+    }
     //gentlyMoveDown is not needed as gravity is cool
     public void gentlyMoveUp() {
         linearSlideMotor.set(0.4);
     }
     public void stop() {
-        linearSlideMotor.set(0);
+        linearSlideMotor.set(0.01);
     }
 
 }
