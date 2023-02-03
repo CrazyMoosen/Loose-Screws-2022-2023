@@ -5,7 +5,6 @@ import static java.lang.Math.abs;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Paint;
-import android.graphics.Point;
 import android.graphics.Rect;
 
 import androidx.annotation.NonNull;
@@ -15,7 +14,6 @@ import com.arcrobotics.ftclib.hardware.motors.Motor;
 import com.qualcomm.hardware.bosch.BHI260IMU;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
-import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.YawPitchRollAngles;
 import org.firstinspires.ftc.team22012.universal.subsystems.ArmSubsystem;
@@ -310,7 +308,7 @@ public class RobotPosition extends Position {
     public static void feather(Motor.Encoder armEncoder, ArmSubsystem arm, double minimumRevolutions) {
         armEncoder.setDistancePerPulse(57.6692368);
         if (armEncoder.getRevolutions() < minimumRevolutions - 1) {
-            arm.moveup(); //makes it go up faster if max position
+            arm.moveUp(); //makes it go up faster if max position
         }
         if (armEncoder.getRevolutions() < minimumRevolutions) {
             arm.gentlyMoveUp();
@@ -325,7 +323,7 @@ public class RobotPosition extends Position {
         if (forward) {
             while (bREncoder.getRevolutions() < distance / 12.0D) {
                 if (bREncoder.getRevolutions() < (distance / 12.0D -1.58 )) {
-                    mecanumDrive.driveRobotCentric(0, -0.6, 0); //moves backward
+                    mecanumDrive.driveRobotCentric(0, -0.4, 0); //moves backward
                 } else {
                     mecanumDrive.driveRobotCentric(0, -0.2, 0); //moves backward
                 }
@@ -335,7 +333,7 @@ public class RobotPosition extends Position {
         else {
             while (bREncoder.getRevolutions() > -distance/12.0D) {
                 if (bREncoder.getRevolutions() > ((-distance / 12.0D) + 1.58)) {
-                    mecanumDrive.driveRobotCentric(0, 0.6, 0); //moves backward
+                    mecanumDrive.driveRobotCentric(0, 0.4, 0); //moves backward
                 } else {
                     mecanumDrive.driveRobotCentric(0, 0.2, 0); //moves backward
                 }
@@ -349,7 +347,7 @@ public class RobotPosition extends Position {
         if (right) {
             while (bREncoder.getRevolutions() <= distance / 12.0D) {
                 if (bREncoder.getRevolutions() <= (distance / 12.0)-0.04) {
-                    mecanumDrive.driveRobotCentric(-0.6, 0, 0);
+                    mecanumDrive.driveRobotCentric(-0.5, 0, 0);
                 } else {
                     mecanumDrive.driveRobotCentric(-0.1, 0, 0);
 
@@ -360,7 +358,7 @@ public class RobotPosition extends Position {
         else {
             while (bREncoder.getRevolutions() >= -distance / 12.0D) {
                 if (bREncoder.getRevolutions() >= (-distance / 12.0+0.04)) {
-                    mecanumDrive.driveRobotCentric(0.6, 0, 0);
+                    mecanumDrive.driveRobotCentric(0.5, 0, 0);
                 } else {
                     mecanumDrive.driveRobotCentric(0.1, 0, 0);
 

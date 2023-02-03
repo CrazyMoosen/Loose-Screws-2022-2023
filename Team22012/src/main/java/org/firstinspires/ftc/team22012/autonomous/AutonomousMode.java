@@ -122,6 +122,7 @@ public class AutonomousMode extends LinearOpMode{
         Motor armMotor = new Motor(hardwareMap, "linearSlideMotor1", Motor.GoBILDA.RPM_312);
         arm = new ArmSubsystem(armMotor);
         armEncoder = armMotor.encoder;
+        armEncoder.reset();
         //sets the distance per pulse so we can move the robot accordingly
         fL.setDistancePerPulse(0.0223214286D);
         fR.setDistancePerPulse(0.0223214286D); // this is equal to 12/537.6
@@ -150,7 +151,7 @@ public class AutonomousMode extends LinearOpMode{
             tfod.setZoom(1.0, 16.0 / 9.0);
         }
 
-         imu = hardwareMap.get(BHI260IMU.class, "imu");
+        imu = hardwareMap.get(BHI260IMU.class, "imu");
         IMU.Parameters parameters = new IMU.Parameters(
                 new RevHubOrientationOnRobot(
                         RevHubOrientationOnRobot.LogoFacingDirection.UP, //Orthogonal #9 in the docs
@@ -169,13 +170,13 @@ public class AutonomousMode extends LinearOpMode{
         if (opModeIsActive()) {
             elapsedTime.reset();
             gameTimer.reset();
-            while (armEncoder.getRevolutions() < arm.finalPosition) {
-                arm.moveup();
-            }
-            elapsedTime.reset();
-            while (elapsedTime.milliseconds() < 2000) {
-                arm.movedown();
-            }
+//            while (armEncoder.getRevolutions() < arm.finalPosition) {
+//                arm.moveup();
+//            }
+//            elapsedTime.reset();
+//            while (elapsedTime.milliseconds() < 2000) {
+//                arm.movedown();
+//            }
 //            if (armEncoder.getRevolutions() > 0.3) {
 //                arm.movedown();
 //            }
@@ -186,10 +187,10 @@ public class AutonomousMode extends LinearOpMode{
 //            }
             arm.stop();
             claw.closeFully();
-            robot.moveToPos(7,45);
+            robot.moveToPos(5,45);
             while (opModeIsActive()) {
                 //vuforia.rgb represents the image/frame given by the camera
-                if (vuforia.rgb != null) {
+                if (vuforia.rgb != null && sleeveColor != SignalSleeveColor.NONE) {
                     //converts image to bitmap so that OpenCV can use it to threshold
                     Bitmap bm = Bitmap.createBitmap(vuforia.rgb.getWidth(), vuforia.rgb.getHeight(), Bitmap.Config.RGB_565);
                     bm.copyPixelsFromBuffer(vuforia.rgb.getPixels());
@@ -263,19 +264,21 @@ public class AutonomousMode extends LinearOpMode{
                     telemetry.addData("location is", "none");
                 }
                 telemetry.addData("Percentage of color", percent);
-                robot.moveToPos(7, 43);
                 elapsedTime.reset();
-                while(elapsedTime.milliseconds()<150 && opModeIsActive()){
+                while(elapsedTime.milliseconds() < 300 && opModeIsActive()){
+
+                }
+                elapsedTime.reset();
+                while(elapsedTime.milliseconds() < 300 && opModeIsActive()){
 
                 }
                 if (!scored && opModeIsActive()) {
+                    robot.moveToPos(5, 41);
                     scoreOnHighJunction();
                     scored = true;
                 }
-//                while (gameTimer.milliseconds() <= 21000){
-//                    Getcone();
-//                    scoreOnHighJunction();
-//            }
+                elapsedTime.reset();
+                while(elapsedTime.milliseconds() < 300 && opModeIsActive()){}
                 if (!parked&&opModeIsActive()){
                     park();
                     parked=true;
@@ -287,43 +290,18 @@ public class AutonomousMode extends LinearOpMode{
         }
     }
     public void scoreOnHighJunction() {
-        robot.moveToPos(52.5, 45);
-        robot.moveToPos(52.5, 54.5);
-        elapsedTime.reset();
-        while (armEncoder.getRevolutions() < arm.finalPosition-0.75) {
-            arm.moveup();
+        while (armEncoder.getRevolutions() < arm.finalPosition-0.2) {
+            arm.moveUp();
         }
         arm.stallarm();
-        robot.moveToPos(56, 54);
+        robot.moveToPos(51.5, 41);
+        robot.moveToPos(51.5, 53.75);
+        robot.moveToPos(55, 53.75);
+        elapsedTime.reset();
         claw.openFully();
-        arm.movedown();
-        arm.stop();
-        robot.moveToPos(50, 54);
-//        robot.moveToPos(50,42.5);`
-//        turn(0.6, 90);
-//        robot.setX(64);
-//        robot.moveToPos(64, 24.5);
-//        elapsedTime.reset();
-//        while (elapsedTime.milliseconds() <= 250) {
-//            arm.moveup();
-//        }
-//        robot.moveToPos(64, 19);
-//        claw.openFully();
-//        arm.movedown();
-//        claw.closeFully();
-//        elapsedTime.reset();
-//        while (elapsedTime.milliseconds() <= 250) {
-//            arm.moveup();
-//        }
-//        robot.moveToPos(64,54.5);
-//        turn(-0.6,90);
-//        robot.setX(50);
-//        robot.moveToPos(52.5, 54.5);
-//        arm.movedown();
-//        claw.openFully();
-//        robot.moveToPos(52.5,43);
-//        robot.moveToPos(52.5,43);
-
+        while (elapsedTime.milliseconds() <= 500){}
+        //arm.moveDown();
+        //arm.stop();
     }
     public void center(){
         double centerX = robot.getX() - (robot.getX() % 24) + 5;
@@ -331,13 +309,14 @@ public class AutonomousMode extends LinearOpMode{
         robot.moveToPos(centerX, centerY);
     }
     public void park(){
-        center();
+        //center();
         if (sleeveColor==SignalSleeveColor.GREEN){
-            robot.moveToPos(48,42);
+            // Changed from 48 to 50
+//            robot.moveToPos(52,42);
         }else if (sleeveColor==SignalSleeveColor.PURPLE){
 
         }else if (sleeveColor==SignalSleeveColor.YELLOW){
-            robot.moveToPos(48,2);
+//            robot.moveToPos(52,2);
         }
     }
     public void getCone(){
@@ -347,12 +326,12 @@ public class AutonomousMode extends LinearOpMode{
         claw.openFully();
         elapsedTime.reset();
         while(elapsedTime.milliseconds()<=1000) {
-            arm.moveup();
+            arm.moveUp();
         }
         robot.moveToPos(68, 17);
         elapsedTime.reset();
         while(elapsedTime.milliseconds()<=750) {
-            arm.movedown();
+            arm.moveDown();
         }
         claw.closeFully();
 //TURN NEEDED

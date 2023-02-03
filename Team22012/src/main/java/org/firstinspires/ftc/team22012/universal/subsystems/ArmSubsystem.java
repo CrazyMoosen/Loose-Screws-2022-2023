@@ -4,7 +4,7 @@ import static java.lang.Math.abs;
 
 import com.arcrobotics.ftclib.command.SubsystemBase;
 import com.arcrobotics.ftclib.hardware.motors.Motor;
-import com.qualcomm.robotcore.hardware.HardwareMap;
+import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 public class ArmSubsystem extends SubsystemBase {
@@ -17,30 +17,32 @@ public class ArmSubsystem extends SubsystemBase {
     public ArmSubsystem(Motor linearSlideMotor) {
         this.linearSlideMotor = linearSlideMotor;
         this.linearSlideMotor.setInverted(true);
-
+        //this.linearSlideMotor.setRunMode(Motor.RunMode.PositionControl);
     }
     public void moveAuto() {
         elapsedTime.reset();
         while (elapsedTime.milliseconds() < 1000) {
-            moveup();
+            moveUp();
         }
         stop();
     }
-    public void moveup() {
-        linearSlideMotor.set(1);
-    }
-    public void movedown() {
-        linearSlideMotor.set(-1);
-    } //for testing purposes i put 1 we can change to slower later
-    public void stallarm(){
+
+    public void stallarm() {
         linearSlideMotor.set(0.15);
     }
+
+//    public void move(double value) {
+//
+//    }
+
+    public void moveUp() {
+        linearSlideMotor.set(1);
+    }
+    public void moveDown() { linearSlideMotor.set(-1); }
+    public void stop(){linearSlideMotor.set(0);}
     //gentlyMoveDown is not needed as gravity is cool
     public void gentlyMoveUp() {
         linearSlideMotor.set(0.4);
-    }
-    public void stop() {
-        linearSlideMotor.set(0.01);
     }
 
 }

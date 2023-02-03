@@ -1,21 +1,16 @@
 package org.firstinspires.ftc.team22012.teleoperated;
 
 import com.arcrobotics.ftclib.drivebase.MecanumDrive;
-import com.arcrobotics.ftclib.drivebase.RobotDrive;
 import com.arcrobotics.ftclib.gamepad.GamepadEx;
 import com.arcrobotics.ftclib.gamepad.GamepadKeys;
-import com.arcrobotics.ftclib.geometry.Vector2d;
-import com.arcrobotics.ftclib.hardware.ServoEx;
 import com.arcrobotics.ftclib.hardware.SimpleServo;
 import com.arcrobotics.ftclib.hardware.motors.Motor;
-import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
 import org.firstinspires.ftc.team22012.autonomous.RobotPosition;
 import org.firstinspires.ftc.team22012.universal.subsystems.ArmSubsystem;
 import org.firstinspires.ftc.team22012.universal.subsystems.ClawSubsystem;
-import org.firstinspires.ftc.team22012.universal.subsystems.DriveSubsystem;
 
 @TeleOp(name="RobotCentric", group = "Drive Modes")
 public class RobotCentricTeleOp extends OpMode {
@@ -95,10 +90,10 @@ public class RobotCentricTeleOp extends OpMode {
         }
 
         if (armEncoder.getRevolutions() <= 5.6 && monishController.getTrigger(GamepadKeys.Trigger.RIGHT_TRIGGER)>=0.1 && !locked) { // if monish/arav presses X button the arm moves up
-            arm.moveup();
+            arm.moveUp();
         }
         else if (armEncoder.getRevolutions() <= 5.6 && monishController.getTrigger(GamepadKeys.Trigger.LEFT_TRIGGER)>=0.1 && !locked){ // else if B button down then arm moves down
-            arm.movedown();
+            arm.moveDown();
         }
         else if (!locked){
             arm.stop(); //else don't move the arm at all
