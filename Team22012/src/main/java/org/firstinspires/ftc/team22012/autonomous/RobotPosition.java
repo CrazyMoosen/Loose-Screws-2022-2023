@@ -402,22 +402,34 @@ public class RobotPosition extends Position {
     }
 
     public void turnLeft(MecanumDrive mecanumDrive, BHI260IMU imu) {
-        imu.resetYaw();
-        YawPitchRollAngles robotOrientation = imu.getRobotYawPitchRollAngles();
-        while (robotOrientation.getYaw(AngleUnit.DEGREES)  >= 270 ) {
-            mecanumDrive.driveRobotCentric(0, 0, 0.3);
-
+//        imu.resetYaw();
+//        YawPitchRollAngles robotOrientation = imu.getRobotYawPitchRollAngles();
+//        while (robotOrientation.getYaw(AngleUnit.DEGREES)  >= 270 ) {
+//            mecanumDrive.driveRobotCentric(0, 0, 0.3);
+//
+//        }
+//        mecanumDrive.driveRobotCentric(0,0,0);
+        ElapsedTime time = new ElapsedTime();
+        time.reset();
+        while (time.milliseconds() < 1050) {
+            mecanumDrive.driveRobotCentric(0, 0, 0.4);
         }
-        mecanumDrive.driveRobotCentric(0,0,0);
+        mecanumDrive.driveRobotCentric(0, 0, 0);
         changeDirection(270);
     }
 
     public void turnRight(MecanumDrive mecanumDrive, BHI260IMU imu) {
-        imu.resetYaw();
-        YawPitchRollAngles robotOrientation = imu.getRobotYawPitchRollAngles();
-        while (robotOrientation.getYaw(AngleUnit.DEGREES) > -89) {
-            mecanumDrive.driveRobotCentric(0, 0, -0.3);
+//        imu.resetYaw();
+//        YawPitchRollAngles robotOrientation = imu.getRobotYawPitchRollAngles();
+//        while (robotOrientation.getYaw(AngleUnit.DEGREES) > -89) {
+//            mecanumDrive.driveRobotCentric(0, 0, -0.3);
+//        }
+        ElapsedTime time = new ElapsedTime();
+        time.reset();
+        while (time.milliseconds() < 1050) {
+            mecanumDrive.driveRobotCentric(0, 0, -0.4);
         }
+        mecanumDrive.driveRobotCentric(0, 0, 0);
         changeDirection(90);
     }
 

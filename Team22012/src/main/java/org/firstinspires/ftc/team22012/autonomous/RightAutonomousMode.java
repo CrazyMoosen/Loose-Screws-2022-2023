@@ -33,8 +33,8 @@ import org.opencv.imgcodecs.Imgcodecs;
 import org.opencv.imgproc.Imgproc;
 
 //@Autonomous(name = "Vuforia Webcam Detection Blue Team")
-@Autonomous(name = "Autonomous Mode")
-public class AutonomousMode extends LinearOpMode{
+@Autonomous(name = "Right Autonomous Mode")
+public class RightAutonomousMode extends LinearOpMode{
 
     //The enumeration that is going to be used to detect where to park the robot
     public enum SignalSleeveColor {
@@ -130,7 +130,7 @@ public class AutonomousMode extends LinearOpMode{
         fR.setDistancePerPulse(0.0223214286D); // this is equal to 12/537.6
         bR.setDistancePerPulse(0.0223214286D);
         bL.setDistancePerPulse(0.0223214286D);
-        robot = new RobotPosition(fL, fR, bL, bR, 0, 45, Direction.Right);
+        robot = new RobotPosition(fL, fR, bL, bR, 0, 119, Direction.Right);
         // The TFObjectDetector uses the camera frames from the VuforiaLocalizer, so we create that
         // first.
         mecanumDrive = new MecanumDrive(fL,fR,bL,bR);
@@ -189,7 +189,7 @@ public class AutonomousMode extends LinearOpMode{
 //            }
             arm.stop();
             claw.closeFully();
-            robot.moveToPos(5,45.5);
+            robot.moveToPos(5,119.5);
 
             while (opModeIsActive()) {
                 if (!sleeveDetected) {
@@ -215,7 +215,7 @@ public class AutonomousMode extends LinearOpMode{
                 telemetry.update();
 
                 if (!scored && !parked && opModeIsActive() && sleeveColor != SignalSleeveColor.NONE) {
-                    robot.moveToPos(5, 42.5);
+                    robot.moveToPos(5, 116.5);
                     scoreOnHighJunction();
                     scored = true;
 
@@ -317,9 +317,9 @@ public class AutonomousMode extends LinearOpMode{
             arm.moveUp();
         }
         arm.stallarm();
-        robot.moveToPos(51.5, 42.5);
-        robot.moveToPos(51.5, 53.75);
-        robot.moveToPos(55, 53.75);
+        robot.moveToPos(51.5, 116.5);
+        robot.moveToPos(51.5, 109.75);
+        robot.moveToPos(55, 109.75);
         elapsedTime.reset();
         claw.openFully();
         while (elapsedTime.milliseconds() <= 500){}
@@ -333,18 +333,19 @@ public class AutonomousMode extends LinearOpMode{
     }
     public void park(){
         //center();
-        robot.moveToPos(55-2.5,53.75);
-        if (sleeveColor==SignalSleeveColor.GREEN){
-            robot.moveToPos(55-2.5,53.75-12);
-            robot.moveToPos(55-24, 53.75-12);
+        robot.moveToPos(55-2.5,144-53.75 + 14);
+        if (sleeveColor== SignalSleeveColor.GREEN){
+            robot.moveToPos(55-2.5,144-(53.75-12) + 14);
+            robot.moveToPos(55-24, 144-(53.75-12) + 14);
             arm.stop();
-        }else if (sleeveColor==SignalSleeveColor.PURPLE){
-            robot.moveToPos(55-2.5,53.75+12);
-            robot.moveToPos(55-24, 53.75+12);
+        }else if (sleeveColor== SignalSleeveColor.PURPLE){
+            robot.moveToPos(55-2.5,130.25+14);
+            robot.moveToPos(55-24, 130.25+14);
+
             arm.stop();
-        }else if (sleeveColor==SignalSleeveColor.YELLOW){
-            robot.moveToPos(55-2.5,53.75-40);
-            robot.moveToPos(55-24, 53.75-40);
+        }else if (sleeveColor== SignalSleeveColor.YELLOW){
+            robot.moveToPos(55-2.5,78.25+14);
+            robot.moveToPos(55-24, 78.25+14);
             arm.stop();
         }
     }

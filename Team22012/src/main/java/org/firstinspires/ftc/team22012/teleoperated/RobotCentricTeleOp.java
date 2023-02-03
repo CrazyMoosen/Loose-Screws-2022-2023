@@ -89,14 +89,23 @@ public class RobotCentricTeleOp extends OpMode {
             claw.openFully();
         }
 
-        if (armEncoder.getRevolutions() <= 5.6 && monishController.getTrigger(GamepadKeys.Trigger.RIGHT_TRIGGER)>=0.1 && !locked) { // if monish/arav presses X button the arm moves up
-            arm.moveUp();
+        if (armEncoder.getRevolutions() < 5.5) {
+            if (armEncoder.getRevolutions() <= 5.6 && monishController.getTrigger(GamepadKeys.Trigger.RIGHT_TRIGGER) >= 0.1 && !locked) { // if monish/arav presses X button the arm moves up
+                arm.moveUp();
+            } else if (armEncoder.getRevolutions() <= 5.6 && monishController.getTrigger(GamepadKeys.Trigger.LEFT_TRIGGER) >= 0.1 && !locked) { // else if B button down then arm moves down
+                arm.moveDown();
+            } else if (!locked) {
+                arm.stallarm(); //else don't move the arm at all
+            }
         }
-        else if (armEncoder.getRevolutions() <= 5.6 && monishController.getTrigger(GamepadKeys.Trigger.LEFT_TRIGGER)>=0.1 && !locked){ // else if B button down then arm moves down
-            arm.moveDown();
+        else {
+            arm.stallarm();
         }
-        else if (!locked){
-            arm.stop(); //else don't move the arm at all
+
+        if (armEncoder.getRevolutions() < 5.9 && armEncoder.getRevolutions() > 5.5) {
+            if (monishController.getTrigger(GamepadKeys.Trigger.LEFT_TRIGGER) >= 0.1 && !locked) { // else if B button down then arm moves down
+                arm.moveDown();
+            }
         }
 
         if ((monishController.getTrigger(GamepadKeys.Trigger.LEFT_TRIGGER)>=0.1 || monishController.getTrigger(GamepadKeys.Trigger.RIGHT_TRIGGER)>=0.1) && locked) {
@@ -136,7 +145,8 @@ public class RobotCentricTeleOp extends OpMode {
         }
 
         if (locked) {
-            RobotPosition.feather(armEncoder, arm, lockedPosition);
+//            RobotPosition.feather(armEncoder, arm, lockedPosition);
+            arm.stallarm();
         }
 
         telemetry.addData("Left Servo Position", claw.getLeftServoAngle());
