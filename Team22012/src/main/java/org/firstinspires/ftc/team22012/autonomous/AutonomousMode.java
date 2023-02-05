@@ -45,7 +45,7 @@ public class AutonomousMode extends LinearOpMode{
     }
 
     //Region of Interest that has the signal cone
-    private final Rect ROIRect = new Rect(new Point(250, 0), new Point(500, 410));
+    private final Rect ROIRect = new Rect(new Point(250, 100), new Point(500, 410));
 
     //the variable used to hold the color that the camera will detect
     private SignalSleeveColor sleeveColor;
@@ -172,30 +172,21 @@ public class AutonomousMode extends LinearOpMode{
         if (opModeIsActive()) {
             elapsedTime.reset();
             gameTimer.reset();
-//            while (armEncoder.getRevolutions() < arm.finalPosition) {
-//                arm.moveup();
-//            }
-//            elapsedTime.reset();
-//            while (elapsedTime.milliseconds() < 2000) {
-//                arm.movedown();
-//            }
-//            if (armEncoder.getRevolutions() > 0.3) {
-//                arm.movedown();
-//            }
-//            arm.stop();
-//            claw.openFully();
-//            if (armEncoder.getRevolutions() > 0.10) {
-//                arm.movedown();
-//            }
+
             arm.stop();
             claw.closeFully();
             robot.moveToPos(5,45.5);
 
+            elapsedTime.reset();
             while (opModeIsActive()) {
                 if (!sleeveDetected) {
                     sleeveColor = getSleeveColor();
                     if (sleeveColor != SignalSleeveColor.NONE) {
                         sleeveDetected = true;
+                    }
+                    if (elapsedTime.milliseconds() > 3000) {
+                        sleeveDetected = true;
+                        sleeveColor = SignalSleeveColor.GREEN;
                     }
                 }
 
@@ -255,7 +246,7 @@ public class AutonomousMode extends LinearOpMode{
 
         //range of values that detects the color purple
         Scalar purple_lower = new Scalar(100, 50, 75);
-        Scalar purple_upper = new Scalar(120, 255, 200);
+        Scalar purple_upper = new Scalar(255, 255, 200);
 
         //range of values that detects the color yellow
         Scalar yellow_lower = new Scalar(0, 62, 128);
@@ -263,7 +254,7 @@ public class AutonomousMode extends LinearOpMode{
 
         //range of values that detects the color green
         Scalar green_lower = new Scalar(45, 0, 75);
-        Scalar green_upper = new Scalar(90, 255, 128);
+        Scalar green_upper = new Scalar(90, 255, 175);
 
         Mat ROIHsv = new Mat();
         Imgproc.cvtColor(ROI, ROIHsv, Imgproc.COLOR_RGB2HSV);
@@ -306,7 +297,9 @@ public class AutonomousMode extends LinearOpMode{
             percent = Math.round(greenValuePercent * 100);
         } else {
             ret = SignalSleeveColor.NONE;
-            percent = 0;
+
+            //testing purposes
+            percent = Math.round(purpleValuePercent * 100);
         }
 
         return ret;
@@ -319,12 +312,10 @@ public class AutonomousMode extends LinearOpMode{
         arm.stallarm();
         robot.moveToPos(51.5, 42.5);
         robot.moveToPos(51.5, 53.75);
-        robot.moveToPos(55, 53.75);
+        robot.moveToPos(53, 54);
         elapsedTime.reset();
         claw.openFully();
         while (elapsedTime.milliseconds() <= 500){}
-//        arm.moveDown();
-//        arm.stop();
     }
     public void center(){
         double centerX = robot.getX() - (robot.getX() % 24) + 5;
@@ -332,7 +323,6 @@ public class AutonomousMode extends LinearOpMode{
         robot.moveToPos(centerX, centerY);
     }
     public void park(){
-        //center();
         robot.moveToPos(55-2.5,53.75);
         if (sleeveColor==SignalSleeveColor.GREEN){
             robot.moveToPos(55-2.5,53.75-12);
@@ -343,8 +333,8 @@ public class AutonomousMode extends LinearOpMode{
             robot.moveToPos(55-24, 53.75+12);
             arm.stop();
         }else if (sleeveColor==SignalSleeveColor.YELLOW){
-            robot.moveToPos(55-2.5,53.75-40);
-            robot.moveToPos(55-24, 53.75-40);
+            robot.moveToPos(55-2.5,53.75-36);
+            robot.moveToPos(55-24, 53.75-36);
             arm.stop();
         }
     }
@@ -363,7 +353,7 @@ public class AutonomousMode extends LinearOpMode{
             arm.moveDown();
         }
         claw.closeFully();
-//TURN NEEDED
+
 
         center();
     }

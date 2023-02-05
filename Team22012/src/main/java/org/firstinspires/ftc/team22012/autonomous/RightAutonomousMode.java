@@ -255,7 +255,7 @@ public class RightAutonomousMode extends LinearOpMode{
 
         //range of values that detects the color purple
         Scalar purple_lower = new Scalar(100, 50, 75);
-        Scalar purple_upper = new Scalar(120, 255, 200);
+        Scalar purple_upper = new Scalar(255, 255, 200);
 
         //range of values that detects the color yellow
         Scalar yellow_lower = new Scalar(0, 62, 128);
@@ -263,7 +263,7 @@ public class RightAutonomousMode extends LinearOpMode{
 
         //range of values that detects the color green
         Scalar green_lower = new Scalar(45, 0, 75);
-        Scalar green_upper = new Scalar(90, 255, 128);
+        Scalar green_upper = new Scalar(90, 255, 175);
 
         Mat ROIHsv = new Mat();
         Imgproc.cvtColor(ROI, ROIHsv, Imgproc.COLOR_RGB2HSV);
