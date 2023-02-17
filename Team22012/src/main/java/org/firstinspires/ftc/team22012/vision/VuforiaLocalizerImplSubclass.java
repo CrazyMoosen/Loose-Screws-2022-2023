@@ -7,13 +7,12 @@ import com.vuforia.PIXEL_FORMAT;
 import com.vuforia.State;
 import com.vuforia.Vuforia;
 
-import org.firstinspires.ftc.robotcore.external.navigation.VuforiaLocalizer;
 import org.firstinspires.ftc.robotcore.internal.vuforia.VuforiaLocalizerImpl;
 
 public class VuforiaLocalizerImplSubclass extends VuforiaLocalizerImpl {
     public Image rgb;
 
-    class CloseableFrame extends Frame {
+    static class CloseableFrame extends Frame {
         public CloseableFrame(Frame other) {
             super(other);
         }

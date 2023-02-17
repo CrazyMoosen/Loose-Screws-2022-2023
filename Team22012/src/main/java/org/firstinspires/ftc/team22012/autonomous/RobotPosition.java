@@ -23,9 +23,8 @@ import org.opencv.imgproc.Imgproc;
 import org.opencv.videoio.VideoWriter;
 
 import java.util.LinkedList;
-
-
 public class RobotPosition extends Position {
+    //theoretical if it doesn't work then use 537.7/(3.7795 * 3.14)
     public static final double TICKS_PER_INCH = 3163d / 38.4d;
 
     DcMotor fL, fR, bL, bR;
@@ -39,9 +38,6 @@ public class RobotPosition extends Position {
     LinkedList<Bitmap> frames = new LinkedList<>();
 
     final double speed = 55; // In inches/sec
-//    final double stoppingDistance = 2.1; // In inches, the distance it takes to stop the robot travelling
-//    // at the power of 0.6
-//    final double degPerSec = 150;
 
     int[][] lowJunctionPositions = {{48, 24}, {96, 24}, {24, 48}, {120, 48}, {24, 96}, {120, 96}, {48, 120}, {96, 120}};
     int[][] mediumJunctionPositions = {{48, 48}, {96, 48}, {48, 96}, {96, 96}};
@@ -296,27 +292,11 @@ public class RobotPosition extends Position {
         }
     }
 
-    //maximum position is around 5.6
-    //this works no matter if RobotPosition is even initialized
-    //it holds the arm in place during teleop or autonomous
-//    public static void feather(Motor.Encoder armEncoder, ArmSubsystem arm, double minimumRevolutions) {
-//        armEncoder.setDistancePerPulse(57.6692368);
-//        if (armEncoder.getRevolutions() < minimumRevolutions - 1) {
-//            arm.moveUp(); //makes it go up faster if max position
-//        }
-//        if (armEncoder.getRevolutions() < minimumRevolutions) {
-//            arm.gentlyMoveUp();
-//        }
-//        else if (armEncoder.getRevolutions() < (minimumRevolutions+0.2) && armEncoder.getRevolutions() > (minimumRevolutions+0.1)) {
-//            arm.stop();
-//        }
-//    }
-
     //this is accurate very much
     public static void moveLinearUsingEncoders(DcMotor bR, MecanumDrive mecanumDrive, boolean forward, double distance) {
         if (forward) {
             while (bR.getCurrentPosition() / TICKS_PER_INCH < distance) {
-                if (bR.getCurrentPosition() / TICKS_PER_INCH < (distance - 1.58 )) {
+                if (bR.getCurrentPosition() / TICKS_PER_INCH < (distance - 1.58)) {
                     mecanumDrive.driveRobotCentric(0, -0.4, 0); //moves backward
                 } else {
                     mecanumDrive.driveRobotCentric(0, -0.2, 0); //moves backward
@@ -395,13 +375,6 @@ public class RobotPosition extends Position {
     }
 
     public void turnLeft(MecanumDrive mecanumDrive, BHI260IMU imu) {
-//        imu.resetYaw();
-//        YawPitchRollAngles robotOrientation = imu.getRobotYawPitchRollAngles();
-//        while (robotOrientation.getYaw(AngleUnit.DEGREES)  >= 270 ) {
-//            mecanumDrive.driveRobotCentric(0, 0, 0.3);
-//
-//        }
-//        mecanumDrive.driveRobotCentric(0,0,0);
         ElapsedTime time = new ElapsedTime();
         time.reset();
         while (time.milliseconds() < 1050) {
@@ -412,11 +385,6 @@ public class RobotPosition extends Position {
     }
 
     public void turnRight(MecanumDrive mecanumDrive, BHI260IMU imu) {
-//        imu.resetYaw();
-//        YawPitchRollAngles robotOrientation = imu.getRobotYawPitchRollAngles();
-//        while (robotOrientation.getYaw(AngleUnit.DEGREES) > -89) {
-//            mecanumDrive.driveRobotCentric(0, 0, -0.3);
-//        }
         ElapsedTime time = new ElapsedTime();
         time.reset();
         while (time.milliseconds() < 1050) {

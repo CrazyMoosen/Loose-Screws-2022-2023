@@ -1,4 +1,5 @@
 package org.firstinspires.ftc.team22012.teleoperated;
+
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
@@ -12,7 +13,6 @@ import org.firstinspires.ftc.team22012.universal.subsystems.ClawSubsystem;
 
 @TeleOp(name="RobotCentric", group = "Drive Modes")
 public class RobotCentricTeleOp extends OpMode {
-
 
     public static final double kDefaultRangeMin = -1.0;
     public static final double kDefaultRangeMax = 1.0;
@@ -34,10 +34,9 @@ public class RobotCentricTeleOp extends OpMode {
      */
     private ArmSubsystem arm;
     private ClawSubsystem claw;
-    
+
 
     private boolean locked = false;
-    private double lockedPosition = 0;
 
     @Override
     public void init() {
@@ -55,7 +54,7 @@ public class RobotCentricTeleOp extends OpMode {
 
         shreyController = gamepad1;
         monishController = gamepad2;
-        
+
         armMotor = hardwareMap.get(DcMotor.class, "linearSlideMotor1");
         claw = new ClawSubsystem(hardwareMap.get(Servo.class, "servo1"), hardwareMap.get(Servo.class, "servo2"));
         armMotor.resetDeviceConfigurationForOpMode();
@@ -78,9 +77,9 @@ public class RobotCentricTeleOp extends OpMode {
                 -shreyController.left_stick_y*0.45*speedMultiplier,
                 -shreyController.right_stick_x*0.45*speedMultiplier
         );
+        double lockedPosition = 0;
         if (monishController.a) {
             locked = true;
-            lockedPosition = armMotor.getCurrentPosition();
         }
         if (monishController.right_bumper) {
             claw.closeFully();
@@ -89,10 +88,10 @@ public class RobotCentricTeleOp extends OpMode {
             claw.openFully();
         }
 
-        if (armMotor.getCurrentPosition() < 3140) {
-            if (armMotor.getCurrentPosition() <= 3140 && monishController.right_trigger >= 0.1 && !locked) { // if monish/arav presses X button the arm moves up
+        if (arm.getHeight() > 32) {
+            if (arm.getHeight() < 32 && monishController.right_trigger >= 0.1 && !locked) { // if monish/arav presses X button the arm moves up
                 arm.moveUp();
-            } else if (armMotor.getCurrentPosition() <= 3140 && monishController.left_trigger >= 0.1 && !locked) { // else if B button down then arm moves down
+            } else if (arm.getHeight() < 32 && monishController.left_trigger >= 0.1 && !locked) { // else if B button down then arm moves down
                 arm.moveDown();
             } else if (!locked) {
                 arm.stallarm(); //else don't move the arm at all
@@ -102,7 +101,7 @@ public class RobotCentricTeleOp extends OpMode {
             arm.stallarm();
         }
 
-        if (armMotor.getCurrentPosition() < 5.9 && armMotor.getCurrentPosition() > 5.5) {
+        if (arm.getHeight() < 34 && armMotor.getCurrentPosition() > 32) {
             if (monishController.left_trigger >= 0.1 && !locked) { // else if B button down then arm moves down
                 arm.moveDown();
             }
@@ -110,19 +109,17 @@ public class RobotCentricTeleOp extends OpMode {
 
         if ((monishController.left_trigger>=0.1 || monishController.right_trigger>=0.1) && locked) {
             locked = false;
-            lockedPosition = 0;
         }
 
 
         if (locked) {
-//            RobotPosition.feather(armEncoder, arm, lockedPosition);
             arm.stallarm();
         }
 
         telemetry.addData("Left Servo Position", claw.getLeftServoAngle());
         telemetry.addData("Right Servo Position", claw.getRightServoAngle());
         telemetry.addData("Arm Encoder Distance", armMotor.getCurrentPosition());
-        telemetry.addData("Arm Encoder Revolutions", armMotor.getCurrentPosition());
+        telemetry.addData("Arm Encoder Height", arm.getHeight());
         telemetry.addData("bR Position", bR.getCurrentPosition());
 
         telemetry.update();

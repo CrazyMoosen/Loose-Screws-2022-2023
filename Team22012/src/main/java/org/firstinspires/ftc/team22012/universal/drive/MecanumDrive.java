@@ -7,15 +7,7 @@ public class MecanumDrive extends RobotDrive {
 
     DcMotor[] motors;
 
-    /**
-     * Sets up the constructor for the mecanum drive.
-     * Automatically inverts right side by default
-     *
-     * @param frontLeft  the front left motor
-     * @param frontRight the front right motor
-     * @param backLeft   the back left motor
-     * @param backRight  the back right motor
-     */
+
     public MecanumDrive(DcMotor frontLeft, DcMotor frontRight, DcMotor backLeft, DcMotor backRight) {
         this(true, frontLeft, frontRight, backLeft, backRight);
     }
@@ -34,20 +26,10 @@ public class MecanumDrive extends RobotDrive {
         setRightSideInverted(autoInvert);
     }
 
-    /**
-     * Checks if the right side motors are inverted.
-     *
-     * @return true if the multiplier for the right side is equal to -1.
-     */
     public boolean isRightSideInverted() {
         return rightSideMultiplier == -1.0;
     }
 
-    /**
-     * Sets the right side inversion factor to the specified boolean.
-     *
-     * @param isInverted If true, sets the right side multiplier to -1 or 1 if false.
-     */
     public void setRightSideInverted(boolean isInverted) {
         rightSideMultiplier = isInverted ? -1.0 : 1.0;
     }
@@ -61,19 +43,10 @@ public class MecanumDrive extends RobotDrive {
     public void setRange(double min, double max) {
         super.setRange(min, max);
     }
-
-    /**
-     * Sets the max speed of the drivebase, see RobotDrive for more info.
-     *
-     * @param value The maximum output speed.
-     */
     public void setMaxSpeed(double value) {
         super.setMaxSpeed(value);
     }
 
-    /**
-     * Stop the motors.
-     */
     @Override
     public void stop() {
         for (DcMotor x : motors) {

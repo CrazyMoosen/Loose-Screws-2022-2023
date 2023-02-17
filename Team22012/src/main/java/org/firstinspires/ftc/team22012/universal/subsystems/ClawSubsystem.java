@@ -1,9 +1,6 @@
 package org.firstinspires.ftc.team22012.universal.subsystems;
-import com.qualcomm.robotcore.hardware.HardwareMap;
-import com.qualcomm.robotcore.hardware.Servo;
 
-import org.checkerframework.checker.units.qual.Angle;
-import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
+import com.qualcomm.robotcore.hardware.Servo;
 
 public class ClawSubsystem {
 
@@ -20,6 +17,9 @@ public class ClawSubsystem {
         rightServo.scaleRange(0, 300);
         leftServo.setDirection(Servo.Direction.REVERSE);
 
+        leftServo.getController().pwmEnable();
+        rightServo.getController().pwmEnable();
+
         //these two set the servos to the open position.3
         leftServo.setPosition(0);
         rightServo.setPosition(0);
@@ -33,8 +33,8 @@ public class ClawSubsystem {
     }
 
     public void closeFully() {
-        leftServo.setPosition(40/300d);
-        rightServo.setPosition(40/300d);
+        leftServo.setPosition(40d/300d);
+        rightServo.setPosition(40d/300d);
     }
 
     public void openFully() {
