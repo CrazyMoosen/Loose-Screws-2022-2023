@@ -49,6 +49,8 @@ import static org.firstinspires.ftc.team22012.drive.DriveConstants.kA;
 import static org.firstinspires.ftc.team22012.drive.DriveConstants.kStatic;
 import static org.firstinspires.ftc.team22012.drive.DriveConstants.kV;
 
+import android.media.tv.TvContract;
+
 /*
  * Simple tank drive hardware implementation for REV hardware.
  */
@@ -90,7 +92,7 @@ public class SampleTankDrive extends TankDrive {
         // TODO: adjust the names of the following hardware devices to match your configuration
         imu = hardwareMap.get(IMU.class, "imu");
         IMU.Parameters parameters = new IMU.Parameters(new RevHubOrientationOnRobot(
-                DriveConstants.LOGO_FACING_DIR, DriveConstants.USB_FACING_DIR));
+                RevHubOrientationOnRobot.LogoFacingDirection.UP, RevHubOrientationOnRobot.UsbFacingDirection.LEFT));
         imu.initialize(parameters);
 
         // add/remove motors depending on your robot (e.g., 6WD)
