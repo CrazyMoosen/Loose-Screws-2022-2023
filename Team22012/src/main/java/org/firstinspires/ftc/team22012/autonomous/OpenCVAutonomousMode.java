@@ -35,8 +35,8 @@ public class OpenCVAutonomousMode extends LinearOpMode {
         initWebcam();
 
         telemetry.addData(">", "Press Play to start op mode");
-        telemetry.addData("X Pos In Robot Position", robot.getX());
-        telemetry.addData("Y Pos In Robot Position", robot.getY());
+//        telemetry.addData("X Pos In Robot Position", robot.getX());
+//        telemetry.addData("Y Pos In Robot Position", robot.getY());
         telemetry.update();
         waitForStart();
 

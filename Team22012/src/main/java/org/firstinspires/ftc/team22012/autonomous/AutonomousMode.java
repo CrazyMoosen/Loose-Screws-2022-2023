@@ -47,7 +47,7 @@ public class AutonomousMode extends LinearOpMode{
     //Region of Interest that has the signal cone
     private final Rect ROIRect = new Rect(new Point(250, 100), new Point(500, 410));
 
-    //the variable used to hold the color that the camera will detect
+    //the variable used to hold the color that the webcam will detect
     private SignalSleeveColor sleeveColor;
 
     //this variable will hold the percent of yellow/purple/green detected
@@ -131,7 +131,7 @@ public class AutonomousMode extends LinearOpMode{
 //        bR.setDistancePerPulse(0.0223214286D);
 //        bL.setDistancePerPulse(0.0223214286D);
         robot = new RobotPosition(fL, fR, bL, bR, 0, 45, Direction.Right);
-        // The TFObjectDetector uses the camera frames from the VuforiaLocalizer, so we create that
+        // The TFObjectDetector uses the webcam frames from the VuforiaLocalizer, so we create that
         // first.
         mecanumDrive = new MecanumDrive(fL,fR,bL,bR);
         initVuforia();
@@ -144,7 +144,7 @@ public class AutonomousMode extends LinearOpMode{
         if (tfod != null) {
             tfod.activate();
 
-            // The TensorFlow software will scale the input images from the camera to a lower resolution.
+            // The TensorFlow software will scale the input images from the webcam to a lower resolution.
             // This can result in lower detection accuracy at longer distances (> 55cm or 22").
             // If your target is at distance greater than 50 cm (20") you can increase the magnification value
             // to artificially zoom in to the center of image.  For best results, the "aspectRatio" argument
@@ -228,7 +228,7 @@ public class AutonomousMode extends LinearOpMode{
     }
 
     public SignalSleeveColor getSleeveColor() {
-        // get image frame from camera through vuforia
+        // get image frame from webcam through vuforia
         Image frame = vuforia.rgb;
         SignalSleeveColor ret;
 
