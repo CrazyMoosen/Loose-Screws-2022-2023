@@ -6,7 +6,6 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.Gamepad;
 import com.qualcomm.robotcore.hardware.Servo;
 
-import org.firstinspires.ftc.team22012.autonomous.Position;
 import org.firstinspires.ftc.team22012.universal.drive.MecanumDrive;
 import org.firstinspires.ftc.team22012.universal.subsystems.ArmSubsystem;
 import org.firstinspires.ftc.team22012.universal.subsystems.ClawSubsystem;
