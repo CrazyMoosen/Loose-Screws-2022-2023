@@ -70,7 +70,8 @@ public class AutonomousMode extends LinearOpMode{
     final double degPerSec = 137;
 
     private RobotPosition robot;
-    private DcMotor armMotor;
+    private DcMotor armMotor, armMotor2;
+    private Servo clawServo, armServo1, armServo2, armServo3;
 
     private static final String TFOD_MODEL_ASSET = "PowerPlay.tflite";
     //private static final String TFOD_MODEL_FILE  = "/sdcard/FIRST/tflitemodels/CustomTeamModel.tflite";
@@ -81,8 +82,6 @@ public class AutonomousMode extends LinearOpMode{
             "2 Bulb",
             "3 Panel"
     };
-
-    int run = 0;
     boolean scored = false;
     boolean parked = false;
     private boolean sleeveDetected = false;
@@ -122,9 +121,9 @@ public class AutonomousMode extends LinearOpMode{
         sleeveColor = SignalSleeveColor.NONE;
 
         armMotor = hardwareMap.get(DcMotor.class, "linearSlideMotor1");
-        claw = new ClawSubsystem(hardwareMap.get(Servo.class, "servo1"), hardwareMap.get(Servo.class, "servo2"));
+        claw = new ClawSubsystem(clawServo);
         armMotor.resetDeviceConfigurationForOpMode();
-        arm = new ArmSubsystem(armMotor);;
+        arm = new ArmSubsystem(armMotor, armMotor2, armServo1, armServo2, armServo3);;
         //sets the distance per pulse so we can move the robot accordingly
 //        fL.setDistancePerPulse(0.0223214286D);
 //        fR.setDistancePerPulse(0.0223214286D); // this is equal to 12/537.6

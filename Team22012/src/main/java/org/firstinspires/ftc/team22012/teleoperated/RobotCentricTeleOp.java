@@ -21,7 +21,7 @@ public class RobotCentricTeleOp extends OpMode {
     protected double rangeMax = kDefaultRangeMax;
     protected double maxOutput = kDefaultMaxSpeed;
 
-    private DcMotor fL, fR, bL,bR, armMotor;
+    private DcMotor fL, fR, bL,bR, armMotor, armMotor2;
     private Gamepad shreyController;
     private Gamepad monishController;
 
@@ -33,9 +33,7 @@ public class RobotCentricTeleOp extends OpMode {
      */
     private ArmSubsystem arm;
     private ClawSubsystem claw;
-
-
-    private boolean locked = false;
+    Servo armServo1, armServo2, armServo3, clawServo;
 
     @Override
     public void init() {
@@ -55,13 +53,18 @@ public class RobotCentricTeleOp extends OpMode {
         monishController = gamepad2;
 
         armMotor = hardwareMap.get(DcMotor.class, "linearSlideMotor1");
-        claw = new ClawSubsystem(hardwareMap.get(Servo.class, "servo1"), hardwareMap.get(Servo.class, "servo2"));
+        armMotor2 = hardwareMap.get(DcMotor.class, "linearSlideMotor2");
+        armServo1 = hardwareMap.get(Servo.class, "armServo1");
+        armServo2 = hardwareMap.get(Servo.class, "armServo2");
+        armServo3 = hardwareMap.get(Servo.class, "armServo3");
+        clawServo = hardwareMap.get(Servo.class, "clawServo");
+        claw = new ClawSubsystem(clawServo);
         armMotor.resetDeviceConfigurationForOpMode();
-        arm = new ArmSubsystem(armMotor);
-
-        telemetry.addData("Left Servo Position", claw.getLeftServoAngle());
-        telemetry.addData("Right Servo Position", claw.getRightServoAngle());
-        telemetry.update();
+        armMotor2.resetDeviceConfigurationForOpMode();
+        armServo1.resetDeviceConfigurationForOpMode();
+        armServo2.resetDeviceConfigurationForOpMode();
+        armServo3.resetDeviceConfigurationForOpMode();
+        arm = new ArmSubsystem(armMotor, armMotor2, armServo1, armServo2, armServo3);
     }
 
     @Override
@@ -69,17 +72,13 @@ public class RobotCentricTeleOp extends OpMode {
         double speedMultiplier = 1.2;
         //if shrey presses the B button he can boost the speed of the drivetrain
         if (shreyController.b) {
-            speedMultiplier = 1.5;
+            speedMultiplier = 2;
         }
         mecanumDrive.driveRobotCentric(
                 -shreyController.left_stick_x*0.45*speedMultiplier,
                 -shreyController.left_stick_y*0.45*speedMultiplier,
                 -shreyController.right_stick_x*0.45*speedMultiplier
         );
-        double lockedPosition = 0;
-        if (monishController.a) {
-            locked = true;
-        }
         if (monishController.right_bumper) {
             claw.closeFully();
         }
@@ -88,38 +87,56 @@ public class RobotCentricTeleOp extends OpMode {
         }
 
         if (arm.getHeight() > 32) {
-            if (arm.getHeight() < 32 && monishController.right_trigger >= 0.1 && !locked) { // if monish/arav presses X button the arm moves up
+            if (arm.getHeight() < 32 && monishController.right_trigger >= 0.1) { // if monish/arav presses X button the arm moves up
                 arm.moveUp();
-            } else if (arm.getHeight() < 32 && monishController.left_trigger >= 0.1 && !locked) { // else if B button down then arm moves down
+            } else if (arm.getHeight() < 32 && monishController.left_trigger >= 0.1) { // else if B button down then arm moves down
                 arm.moveDown();
-            } else if (!locked) {
-                arm.stallarm(); //else don't move the arm at all
+            } else {
+                arm.stallarm();
             }
         }
         else {
             arm.stallarm();
         }
-
-        if (arm.getHeight() < 34 && armMotor.getCurrentPosition() > 32) {
-            if (monishController.left_trigger >= 0.1 && !locked) { // else if B button down then arm moves down
-                arm.moveDown();
-            }
+        if (monishController.left_stick_y>=0.1 || monishController.left_stick_y<=0.1) {
+            arm.extendArm(monishController.left_stick_y);
+        }
+        if (monishController.right_stick_y>=0.1 || monishController.right_stick_y<0.1){
+            arm.rotateArm(monishController.right_stick_y);
+        }
+        if (monishController.y){
+            arm.extendArm(90);
+        }
+        if (monishController.x){
+            arm.extendArm(0);
+        }
+        if (monishController.a){
+            arm.rotateArm(180);
+        }
+        if (monishController.b){
+            arm.rotateArm(0);
+        }
+        if (monishController.dpad_up) {
+            arm.runToHighJunction();
+        }
+        if (monishController.dpad_down) {
+            arm.runToLowJunction();
+        }
+        if (monishController.dpad_left) {
+            arm.runToMidJunction();
+        }
+        if (monishController.dpad_right) {
+            arm.runToPos(0);
         }
 
-        if ((monishController.left_trigger>=0.1 || monishController.right_trigger>=0.1) && locked) {
-            locked = false;
-        }
-
-
-        if (locked) {
-            arm.stallarm();
-        }
-
-        telemetry.addData("Left Servo Position", claw.getLeftServoAngle());
-        telemetry.addData("Right Servo Position", claw.getRightServoAngle());
         telemetry.addData("Arm Encoder Distance", armMotor.getCurrentPosition());
+        telemetry.addData("Arm Encoder2 Distance", armMotor2.getCurrentPosition());
         telemetry.addData("Arm Encoder Height", arm.getHeight());
         telemetry.addData("bR Position", bR.getCurrentPosition());
+        telemetry.addData("Claw Servo Position", claw.getPosition());
+        telemetry.addData("Arm Servo1 Position", armServo1.getPosition());
+        telemetry.addData("Arm Servo2 Position", armServo2.getPosition());
+        telemetry.addData("Arm Servo3 Position", armServo3.getPosition());
 
         telemetry.update();
     }
