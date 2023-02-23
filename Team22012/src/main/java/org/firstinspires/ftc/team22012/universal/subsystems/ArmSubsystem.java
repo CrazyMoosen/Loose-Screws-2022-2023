@@ -14,22 +14,27 @@ public class ArmSubsystem {
         this.linearSlideMotor.setDirection(DcMotorSimple.Direction.REVERSE);
         this.linearSlideMotor.setTargetPosition(0);
         this.linearSlideMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+
         this.linearSlideMotor2 = linearSlideMotor2;
-        this.linearSlideMotor2.setDirection(DcMotorSimple.Direction.REVERSE);
+        this.linearSlideMotor2.setDirection(DcMotorSimple.Direction.FORWARD);
         this.linearSlideMotor2.setTargetPosition(0);
         this.linearSlideMotor2.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+
         this.armServo1 = armServo1;
         this.armServo1.setPosition(0);
         this.armServo1.setDirection(Servo.Direction.FORWARD);
-        this.armServo1.scaleRange(0.0,180.0);
+
         this.armServo2 = armServo2;
         this.armServo2.setPosition(0);
         this.armServo2.setDirection(Servo.Direction.FORWARD);
-        this.armServo2.scaleRange(0.0,180.0);
+
         this.armServo3 = armServo3;
         this.armServo3.setPosition(90);
         this.armServo3.setDirection(Servo.Direction.REVERSE);
-        this.armServo3.scaleRange(0.0,180.0);
+
+        this.armServo1.getController().pwmEnable();
+        this.armServo2.getController().pwmEnable();
+        this.armServo3.getController().pwmEnable();
     }
 
     public void runToPos(double inches) {
@@ -82,6 +87,17 @@ public class ArmSubsystem {
             armServo1.setPosition(armServo1.getPosition() + angle);
         }
     }
+
+    public void moveServo1(double angle) {
+        armServo1.setPosition(angle);
+    }
+    public void moveServo2(double angle) {
+        armServo2.setPosition(angle);
+    }
+    public void moveServo3(double angle) {
+        armServo3.setPosition(angle);
+    }
+
     public void extendArm(double angle) {
         if (angle*5 + armServo2.getPosition()<=180.0 && angle*5 + armServo2.getPosition()>=0.0) {
             armServo2.setPosition(armServo2.getPosition() + 5 * angle);

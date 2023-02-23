@@ -37,10 +37,10 @@ public class RobotCentricTeleOp extends OpMode {
 
     @Override
     public void init() {
-        fL = hardwareMap.get(DcMotor.class,"fL");
-        fR = hardwareMap.get(DcMotor.class,"fR");
-        bL = hardwareMap.get(DcMotor.class,"bL");
-        bR = hardwareMap.get(DcMotor.class,"bR");
+        fL = hardwareMap.get(DcMotor.class,"leftFront");
+        fR = hardwareMap.get(DcMotor.class,"rightFront");
+        bL = hardwareMap.get(DcMotor.class,"leftRear");
+        bR = hardwareMap.get(DcMotor.class,"rightRear");
 
         bR.resetDeviceConfigurationForOpMode();
         fR.resetDeviceConfigurationForOpMode();
@@ -54,6 +54,7 @@ public class RobotCentricTeleOp extends OpMode {
 
         armMotor = hardwareMap.get(DcMotor.class, "linearSlideMotor1");
         armMotor2 = hardwareMap.get(DcMotor.class, "linearSlideMotor2");
+
         armServo1 = hardwareMap.get(Servo.class, "armServo1");
         armServo2 = hardwareMap.get(Servo.class, "armServo2");
         armServo3 = hardwareMap.get(Servo.class, "armServo3");

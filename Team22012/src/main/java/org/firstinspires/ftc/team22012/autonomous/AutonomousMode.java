@@ -155,8 +155,8 @@ public class AutonomousMode extends LinearOpMode{
         imu = hardwareMap.get(BHI260IMU.class, "imu");
         IMU.Parameters parameters = new IMU.Parameters(
                 new RevHubOrientationOnRobot(
-                        RevHubOrientationOnRobot.LogoFacingDirection.UP, //Orthogonal #9 in the docs
-                        RevHubOrientationOnRobot.UsbFacingDirection.FORWARD));
+                        RevHubOrientationOnRobot.LogoFacingDirection.RIGHT, //Orthogonal #9 in the docs
+                        RevHubOrientationOnRobot.UsbFacingDirection.UP));
 
         imu.initialize(parameters);
         imu.resetYaw();
