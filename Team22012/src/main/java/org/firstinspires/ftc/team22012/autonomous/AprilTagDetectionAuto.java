@@ -1,9 +1,14 @@
 package org.firstinspires.ftc.team22012.autonomous;
 
+import com.acmerobotics.roadrunner.geometry.Pose2d;
+import com.acmerobotics.roadrunner.geometry.Vector2d;
+import com.acmerobotics.roadrunner.trajectory.Trajectory;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
 import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
+import org.firstinspires.ftc.team22012.drive.SampleMecanumDrive;
+import org.firstinspires.ftc.team22012.trajectorysequence.TrajectorySequence;
 import org.firstinspires.ftc.team22012.vision.AprilTagDetectionPipeline;
 import org.openftc.apriltag.AprilTagDetection;
 import org.openftc.easyopencv.OpenCvCamera;
@@ -30,10 +35,8 @@ public class AprilTagDetectionAuto extends LinearOpMode
     double cx = 319.495;
     double cy = 242.502;
 
-    // UNITS ARE METERS
     double tagsize = 0.166;
 
-//    int ID_TAG_OF_INTEREST = 18; // Tag ID 18 from the 36h11 family
     int LEFT = 2;
     int MIDDLE = 6;
     int RIGHT = 16;
@@ -43,6 +46,7 @@ public class AprilTagDetectionAuto extends LinearOpMode
     @Override
     public void runOpMode()
     {
+        SampleMecanumDrive drive = new SampleMecanumDrive(hardwareMap);
         int cameraMonitorViewId = hardwareMap.appContext.getResources().getIdentifier("cameraMonitorViewId", "id", hardwareMap.appContext.getPackageName());
         webcam = OpenCvCameraFactory.getInstance().createWebcam(hardwareMap.get(WebcamName.class, "Webcam 1"), cameraMonitorViewId);
         aprilTagDetectionPipeline = new AprilTagDetectionPipeline(tagsize, fx, fy, cx, cy);
@@ -147,10 +151,37 @@ public class AprilTagDetectionAuto extends LinearOpMode
         }
 
         /* Actually do something useful */
+        if(tagOfInterest != null){
+            switch(tagOfInterest.id){
+                case 2: // go straight
+                    TrajectorySequence trajectory = drive.trajectorySequenceBuilder(new Pose2d(-71.25, 36.25, Math.toRadians(0)))
+                            .splineTo(new Vector2d(-36.25, 36.25), Math.toRadians(0.00))
+                            .build();
+
+                    drive.followTrajectorySequence(trajectory);
+                    break;
+                case 6: // go to left
+                    TrajectorySequence leftTraj = drive.trajectorySequenceBuilder(new Pose2d(-71.25, 36.25, Math.toRadians(0)))
+                            .splineTo(new Vector2d(-36.25, 36.25), Math.toRadians(0.00))
+                            .splineTo(new Vector2d(-36.69, 62.41), Math.toRadians(90))
+                            .build();
+
+                    drive.followTrajectorySequence(leftTraj);
+                    break;
+                case 16: // go to right
+                    TrajectorySequence rightTraj = drive.trajectorySequenceBuilder(new Pose2d(-71.25, 36.25, Math.toRadians(0)))
+                            .splineTo(new Vector2d(-36.25, 36.25), Math.toRadians(0.00))
+                            .splineTo(new Vector2d(-37.13, 12.42), Math.toRadians(270))
+                            .build();
+
+                    drive.followTrajectorySequence(rightTraj);
+                    break;
+            }
+        }
 
 
         /* You wouldn't have this in your autonomous, this is just to prevent the sample from ending */
-        while (opModeIsActive()) {sleep(20);}
+//        while (opModeIsActive()) {sleep(20);}
     }
 
     void tagToTelemetry(AprilTagDetection detection)
