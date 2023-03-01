@@ -66,10 +66,17 @@ public class RobotCentricTeleOp extends OpMode {
         armServo2.resetDeviceConfigurationForOpMode();
         armServo3.resetDeviceConfigurationForOpMode();
         arm = new ArmSubsystem(armMotor, armMotor2, armServo1, armServo2, armServo3);
+        claw.closeFully();
+        arm.moveServo3(0);
+        arm.moveServo1(0);
+        arm.moveServo2(0);
+        arm.runToPos(0.1);
     }
 
     @Override
     public void loop() {
+        armMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+
         double speedMultiplier = 1.2;
         //if shrey presses the B button he can boost the speed of the drivetrain
         if (shreyController.b) {
@@ -86,49 +93,48 @@ public class RobotCentricTeleOp extends OpMode {
         if (monishController.left_bumper) {
             claw.openFully();
         }
-
-        if (arm.getHeight() > 32) {
-            if (arm.getHeight() < 32 && monishController.right_trigger >= 0.1) { // if monish/arav presses X button the arm moves up
-                arm.moveUp();
-            } else if (arm.getHeight() < 32 && monishController.left_trigger >= 0.1) { // else if B button down then arm moves down
-                arm.moveDown();
-            } else {
-                arm.stallarm();
-            }
+        if (monishController.right_trigger >= 0.1 && arm.getHeight() < 30) {
+            arm.moveUp();
+        }
+        else if (monishController.left_trigger >= 0.1) {
+            arm.moveDown();
         }
         else {
-            arm.stallarm();
-        }
-        if (monishController.left_stick_y>=0.1 || monishController.left_stick_y<=0.1) {
-            arm.extendArm(monishController.left_stick_y);
-        }
-        if (monishController.right_stick_y>=0.1 || monishController.right_stick_y<0.1){
-            arm.rotateArm(monishController.right_stick_y);
+            if (arm.getHeight() < 30) {
+                armMotor.setPower(0.01);
+                armMotor2.setPower(0.01);
+            }
         }
         if (monishController.y){
-            arm.extendArm(90);
+            arm.moveServo2(1);
         }
         if (monishController.x){
-            arm.extendArm(0);
+            arm.moveServo2(0);
         }
         if (monishController.a){
-            arm.rotateArm(180);
+            arm.moveServo3(1);
         }
         if (monishController.b){
-            arm.rotateArm(0);
+            arm.moveServo3(0);
         }
-        if (monishController.dpad_up) {
-            arm.runToHighJunction();
+//        if (monishController.dpad_up) {
+//            arm.moveServo1(1);
+//        }
+//        if (monishController.dpad_down) {
+//            arm.moveServo1(0);
+//        }
+        if (monishController.left_stick_x > 0.3) {
+            if (arm.getServo1Pos() < 0.99) {
+                arm.moveServo1(arm.getServo1Pos() + 0.01);
+            }
         }
-        if (monishController.dpad_down) {
-            arm.runToLowJunction();
+        if (monishController.left_stick_x < -0.3) {
+            if (arm.getServo1Pos() > 0.01) {
+                arm.moveServo1(arm.getServo1Pos() - 0.01);
+            }
         }
-        if (monishController.dpad_left) {
-            arm.runToMidJunction();
-        }
-        if (monishController.dpad_right) {
-            arm.runToPos(0);
-        }
+
+        // Stabillization code
 
         telemetry.addData("Arm Encoder Distance", armMotor.getCurrentPosition());
         telemetry.addData("Arm Encoder2 Distance", armMotor2.getCurrentPosition());

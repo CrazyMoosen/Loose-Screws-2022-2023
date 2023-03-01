@@ -2,7 +2,6 @@ package org.firstinspires.ftc.team22012.autonomous;
 
 import com.acmerobotics.roadrunner.geometry.Pose2d;
 import com.acmerobotics.roadrunner.geometry.Vector2d;
-import com.acmerobotics.roadrunner.trajectory.Trajectory;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
@@ -47,6 +46,7 @@ public class AprilTagDetectionAuto extends LinearOpMode
     public void runOpMode()
     {
         SampleMecanumDrive drive = new SampleMecanumDrive(hardwareMap);
+        drive.setPoseEstimate(new Pose2d(-72+7, 27, Math.toRadians(0)));
         int cameraMonitorViewId = hardwareMap.appContext.getResources().getIdentifier("cameraMonitorViewId", "id", hardwareMap.appContext.getPackageName());
         webcam = OpenCvCameraFactory.getInstance().createWebcam(hardwareMap.get(WebcamName.class, "Webcam 1"), cameraMonitorViewId);
         aprilTagDetectionPipeline = new AprilTagDetectionPipeline(tagsize, fx, fy, cx, cy);
@@ -152,31 +152,38 @@ public class AprilTagDetectionAuto extends LinearOpMode
 
         /* Actually do something useful */
         if(tagOfInterest != null){
-            switch(tagOfInterest.id){
-                case 2: // go straight
-                    TrajectorySequence trajectory = drive.trajectorySequenceBuilder(new Pose2d(-71.25, 36.25, Math.toRadians(0)))
-                            .splineTo(new Vector2d(-36.25, 36.25), Math.toRadians(0.00))
-                            .build();
+            TrajectorySequence untitled0 = drive.trajectorySequenceBuilder(new Pose2d(-72+7, 27, Math.toRadians(0)))
+                    .splineTo(new Vector2d(-12.52+7, 31.86), Math.toRadians(0))
+                    .splineTo(new Vector2d(-12.96+7, 23.80), Math.toRadians(270))
+                    .splineTo(new Vector2d(-3.15+7, 23.80), Math.toRadians(0.00))
+                    .build();
 
-                    drive.followTrajectorySequence(trajectory);
-                    break;
-                case 6: // go to left
-                    TrajectorySequence leftTraj = drive.trajectorySequenceBuilder(new Pose2d(-71.25, 36.25, Math.toRadians(0)))
-                            .splineTo(new Vector2d(-36.25, 36.25), Math.toRadians(0.00))
-                            .splineTo(new Vector2d(-36.69, 62.41), Math.toRadians(90))
-                            .build();
-
-                    drive.followTrajectorySequence(leftTraj);
-                    break;
-                case 16: // go to right
-                    TrajectorySequence rightTraj = drive.trajectorySequenceBuilder(new Pose2d(-71.25, 36.25, Math.toRadians(0)))
-                            .splineTo(new Vector2d(-36.25, 36.25), Math.toRadians(0.00))
-                            .splineTo(new Vector2d(-37.13, 12.42), Math.toRadians(270))
-                            .build();
-
-                    drive.followTrajectorySequence(rightTraj);
-                    break;
-            }
+            drive.followTrajectorySequence(untitled0);
+//            switch(tagOfInterest.id){
+//                case 2: // go straight
+//                    TrajectorySequence trajectory = drive.trajectorySequenceBuilder(new Pose2d(-71.25, 36.25, Math.toRadians(0)))
+//                            .splineTo(new Vector2d(-36.25, 36.25), Math.toRadians(0.00))
+//                            .build();
+//
+//                    drive.followTrajectorySequence(trajectory);
+//                    break;
+//                case 6: // go to left
+//                    TrajectorySequence leftTraj = drive.trajectorySequenceBuilder(new Pose2d(-71.25, 36.25, Math.toRadians(0)))
+//                            .splineTo(new Vector2d(-36.25, 36.25), Math.toRadians(0.00))
+//                            .splineTo(new Vector2d(-36.69, 62.41), Math.toRadians(90))
+//                            .build();
+//
+//                    drive.followTrajectorySequence(leftTraj);
+//                    break;
+//                case 16: // go to right
+//                    TrajectorySequence rightTraj = drive.trajectorySequenceBuilder(new Pose2d(-71.25, 36.25, Math.toRadians(0)))
+//                            .splineTo(new Vector2d(-36.25, 36.25), Math.toRadians(0.00))
+//                            .splineTo(new Vector2d(-37.13, 12.42), Math.toRadians(270))
+//                            .build();
+//
+//                    drive.followTrajectorySequence(rightTraj);
+//                    break;
+//            }
         }
 
 

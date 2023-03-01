@@ -11,13 +11,12 @@ public class ClawSubsystem {
 
     public ClawSubsystem(Servo clawServo) {
         this.clawServo = clawServo;
-        clawServo.scaleRange(0, 300);
         clawServo.setDirection(Servo.Direction.REVERSE);
         clawServo.getController().pwmEnable();
         clawServo.setPosition(0);
     }
     public void closeFully() {
-        clawServo.setPosition(40d/300d);
+        clawServo.setPosition(1);
     }
 
     public void openFully() {
