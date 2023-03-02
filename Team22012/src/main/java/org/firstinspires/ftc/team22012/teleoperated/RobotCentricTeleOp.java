@@ -83,8 +83,8 @@ public class RobotCentricTeleOp extends OpMode {
             speedMultiplier = 2;
         }
         mecanumDrive.driveRobotCentric(
-                -shreyController.left_stick_x*0.45*speedMultiplier,
-                -shreyController.left_stick_y*0.45*speedMultiplier,
+                shreyController.left_stick_x*0.45*speedMultiplier,
+                shreyController.left_stick_y*0.45*speedMultiplier,
                 -shreyController.right_stick_x*0.45*speedMultiplier
         );
         if (monishController.right_bumper) {
@@ -117,12 +117,6 @@ public class RobotCentricTeleOp extends OpMode {
         if (monishController.b){
             arm.moveServo3(0);
         }
-//        if (monishController.dpad_up) {
-//            arm.moveServo1(1);
-//        }
-//        if (monishController.dpad_down) {
-//            arm.moveServo1(0);
-//        }
         if (monishController.left_stick_x > 0.3) {
             if (arm.getServo1Pos() < 0.99) {
                 arm.moveServo1(arm.getServo1Pos() + 0.01);
