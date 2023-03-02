@@ -2,6 +2,8 @@ package org.firstinspires.ftc.team22012.autonomous;
 
 import com.acmerobotics.roadrunner.geometry.Pose2d;
 import com.acmerobotics.roadrunner.geometry.Vector2d;
+import com.acmerobotics.roadrunner.trajectory.Trajectory;
+import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
@@ -9,6 +11,7 @@ import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
+import org.firstinspires.ftc.team22012.drive.DriveConstants;
 import org.firstinspires.ftc.team22012.drive.SampleMecanumDrive;
 import org.firstinspires.ftc.team22012.trajectorysequence.TrajectorySequence;
 import org.firstinspires.ftc.team22012.universal.drive.MecanumDrive;
@@ -23,7 +26,7 @@ import org.openftc.easyopencv.OpenCvWebcam;
 
 import java.util.ArrayList;
 
-@TeleOp
+@Autonomous(name = "AprilTagAutonomousMode")
 public class AprilTagDetectionAuto extends LinearOpMode
 {
     OpenCvWebcam webcam;
@@ -47,22 +50,27 @@ public class AprilTagDetectionAuto extends LinearOpMode
     int RIGHT = 16;
 
     AprilTagDetection tagOfInterest = null;
+    DcMotor fL, fR, bL, bR, armMotor, armMotor2;
+    Servo armServo1, armServo2, armServo3, clawServo;
+    ClawSubsystem claw;
+    ArmSubsystem arm;
+    SampleMecanumDrive drive;
 
     @Override
     public void runOpMode()
     {
-        DcMotor fL = hardwareMap.get(DcMotor.class,"leftFront");
-        DcMotor fR = hardwareMap.get(DcMotor.class,"rightFront");
-        DcMotor bL = hardwareMap.get(DcMotor.class,"leftRear");
-        DcMotor bR = hardwareMap.get(DcMotor.class,"rightRear");
+        fL = hardwareMap.get(DcMotor.class,"leftFront");
+        fR = hardwareMap.get(DcMotor.class,"rightFront");
+        bL = hardwareMap.get(DcMotor.class,"leftRear");
+        bR = hardwareMap.get(DcMotor.class,"rightRear");
 
         bR.resetDeviceConfigurationForOpMode();
         fR.resetDeviceConfigurationForOpMode();
         fL.resetDeviceConfigurationForOpMode();
         bL.resetDeviceConfigurationForOpMode();
 
-        DcMotor armMotor = hardwareMap.get(DcMotor.class, "linearSlideMotor1");
-        DcMotor armMotor2 = hardwareMap.get(DcMotor.class, "linearSlideMotor2");
+        armMotor = hardwareMap.get(DcMotor.class, "linearSlideMotor1");
+        armMotor2 = hardwareMap.get(DcMotor.class, "linearSlideMotor2");
 
         Servo armServo1 = hardwareMap.get(Servo.class, "armServo1");
         Servo armServo2 = hardwareMap.get(Servo.class, "armServo2");
@@ -75,14 +83,14 @@ public class AprilTagDetectionAuto extends LinearOpMode
         armServo2.resetDeviceConfigurationForOpMode();
         armServo3.resetDeviceConfigurationForOpMode();
         ArmSubsystem arm = new ArmSubsystem(armMotor, armMotor2, armServo1, armServo2, armServo3);
+        arm.runToPos(2);
         claw.closeFully();
         arm.moveServo3(0);
         arm.moveServo1(0);
         arm.moveServo2(0);
-        arm.runToPos(0.1);
 
         SampleMecanumDrive drive = new SampleMecanumDrive(hardwareMap);
-        drive.setPoseEstimate(new Pose2d(-72+7, 27, Math.toRadians(0)));
+        drive.setPoseEstimate(new Pose2d(-72, 34, Math.toRadians(0)));
         int cameraMonitorViewId = hardwareMap.appContext.getResources().getIdentifier("cameraMonitorViewId", "id", hardwareMap.appContext.getPackageName());
         webcam = OpenCvCameraFactory.getInstance().createWebcam(hardwareMap.get(WebcamName.class, "Webcam 1"), cameraMonitorViewId);
         aprilTagDetectionPipeline = new AprilTagDetectionPipeline(tagsize, fx, fy, cx, cy);
@@ -188,13 +196,20 @@ public class AprilTagDetectionAuto extends LinearOpMode
 
         /* Actually do something useful */
         if(tagOfInterest != null) {
-            scoreOnHighJunction(drive);
+            claw.closeFully();
+            Pose2d highJuncPos = gotoHighJunction(drive);
+            arm.resetMotorMode();
+            while (arm.getHeight() < 34){
+                arm.moveUp();
+            }
+            armMotor.setPower(0.01);
+            armMotor2.setPower(0.01);
+            Pose2d a = forward(drive, 3, highJuncPos);
+            claw.openFully();
+            arm.stop();
 
-            ElapsedTime elapsedTime = new ElapsedTime();
-
-            while (elapsedTime.milliseconds() < 10000) {};
             //park from highJunctionPosition
-            park(drive, tagOfInterest);
+            park(drive, tagOfInterest, a);
         }
 
 
@@ -203,48 +218,59 @@ public class AprilTagDetectionAuto extends LinearOpMode
     }
 
     //parking from highJunctionPosition
-    public void park(SampleMecanumDrive drive, AprilTagDetection tagOfInterest) {
+    public void park(SampleMecanumDrive drive, AprilTagDetection tagOfInterest, Pose2d pose) {
         switch (tagOfInterest.id) {
             case 2: // go straight
-                TrajectorySequence straightTraj = drive.trajectorySequenceBuilder(new Pose2d(-3.15, 24, Math.toRadians(0)))
-                        .splineTo(new Vector2d(-16, 24), Math.toRadians(180))
-                        .splineTo(new Vector2d(-16.5, 33), Math.toRadians(90))
-                        .splineTo(new Vector2d(-35.5, 35), Math.toRadians(180))
+                Trajectory straightTraj = drive.trajectoryBuilder(pose)
+                        .strafeLeft(13.5)
                         .build();
-                drive.followTrajectorySequence(straightTraj);
+                drive.followTrajectory(straightTraj);
                 break;
             case 6: // go to left
-                TrajectorySequence leftTraj = drive.trajectorySequenceBuilder(new Pose2d(-3.15, 24, Math.toRadians(0)))
-                        .splineTo(new Vector2d(-14, 24), Math.toRadians(180))
-                        .splineTo(new Vector2d(-14.5, 60), Math.toRadians(90))
-                        .splineTo(new Vector2d(-35.5, 60), Math.toRadians(180))
+                Trajectory leftTraj = drive.trajectoryBuilder(pose)
+                        .strafeLeft(37.5)
                         .build();
-
-                drive.followTrajectorySequence(leftTraj);
+                drive.followTrajectory(leftTraj);
                 break;
             case 16: // go to right
-                TrajectorySequence rightTraj = drive.trajectorySequenceBuilder(new Pose2d(-3.15, 24, Math.toRadians(0)))
-                        .splineTo(new Vector2d(-16, 24), Math.toRadians(180))
-                        .splineTo(new Vector2d(-16.5, 15), Math.toRadians(270))
-                        .splineTo(new Vector2d(-35.5, 11), Math.toRadians(180))
+                Trajectory rightTraj = drive.trajectoryBuilder(pose)
+                        .strafeRight(13.5)
                         .build();
-
-                drive.followTrajectorySequence(rightTraj);
+                drive.followTrajectory(rightTraj);
                 break;
         }
     }
-    public void scoreOnHighJunction(SampleMecanumDrive drive) {
-        TrajectorySequence highJuncTraj = drive.trajectorySequenceBuilder(new Pose2d(-72, 27, Math.toRadians(0)))
-                .splineTo(new Vector2d(-13, 27), Math.toRadians(0))
-                .splineTo(new Vector2d(-10, 24), Math.toRadians(0))
-                .splineTo(new Vector2d(-3.15, 24), Math.toRadians(0))
+    public Pose2d gotoHighJunction(SampleMecanumDrive drive) {
+        TrajectorySequence moveForwardTraj = drive.trajectorySequenceBuilder(new Pose2d(-72, 34, Math.toRadians(0)))
+                .splineTo(new Vector2d(-22, 34), Math.toRadians(0))
                 .build();
-        drive.followTrajectorySequence(highJuncTraj);
+        drive.followTrajectorySequence(moveForwardTraj);
 
+        Trajectory strafeRightTraj = drive.trajectoryBuilder(moveForwardTraj.end())
+                .strafeRight(13.5)
+                .build();
+        drive.followTrajectory(strafeRightTraj);
 
+        return strafeRightTraj.end();
+    }
+
+    public Pose2d forward(SampleMecanumDrive drive, double inches, Pose2d pos) {
+        Trajectory forwardTraj = drive.trajectoryBuilder(pos)
+                .forward(inches)
+                .build();
+        drive.followTrajectory(forwardTraj);
+        return forwardTraj.end();
+    }
+
+    public void strafeRight(SampleMecanumDrive drive, double inches) {
+        Trajectory strafeRightTraj = drive.trajectoryBuilder(new Pose2d())
+                .strafeRight(inches)
+                .build();
+        drive.followTrajectory(strafeRightTraj);
     }
 
     void tagToTelemetry(AprilTagDetection detection)
+
     {
         telemetry.addLine(String.format("\nDetected tag ID=%d", detection.id));
         telemetry.addLine(String.format("Translation X: %.2f feet", detection.pose.x*FEET_PER_METER));

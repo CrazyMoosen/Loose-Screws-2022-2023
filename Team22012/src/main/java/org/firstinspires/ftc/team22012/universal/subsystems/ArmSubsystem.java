@@ -52,6 +52,11 @@ public class ArmSubsystem {
 //        this.linearSlideMotor2.setMode(DcMotor.RunMode.RUN_TO_POSITION);
     }
 
+    public void resetMotorMode() {
+        linearSlideMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        this.linearSlideMotor2.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+    }
+
     public void moveUp(){
         linearSlideMotor.setPower(1);
         linearSlideMotor2.setPower(1);

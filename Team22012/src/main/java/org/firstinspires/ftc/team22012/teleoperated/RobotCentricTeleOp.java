@@ -77,15 +77,15 @@ public class RobotCentricTeleOp extends OpMode {
     public void loop() {
         armMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
 
-        double speedMultiplier = 1.2;
+        double speedMultiplier = 1.5;
         //if shrey presses the B button he can boost the speed of the drivetrain
         if (shreyController.b) {
             speedMultiplier = 2;
         }
         mecanumDrive.driveRobotCentric(
-                shreyController.left_stick_x*0.45*speedMultiplier,
-                shreyController.left_stick_y*0.45*speedMultiplier,
-                -shreyController.right_stick_x*0.45*speedMultiplier
+                -shreyController.left_stick_x*0.55*speedMultiplier,
+                shreyController.left_stick_y*0.55*speedMultiplier,
+                -shreyController.right_stick_x*0.55*speedMultiplier
         );
         if (monishController.right_bumper) {
             claw.closeFully();
