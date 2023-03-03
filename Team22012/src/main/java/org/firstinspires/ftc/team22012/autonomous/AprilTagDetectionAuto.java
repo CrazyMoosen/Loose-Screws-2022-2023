@@ -227,11 +227,15 @@ public class AprilTagDetectionAuto extends LinearOpMode
                 drive.followTrajectory(straightTraj);
                 break;
             case 6: // go to left
-                drive.followTrajectory(
-                        drive.trajectoryBuilder(pose)
-                                .strafeLeft(37.5)
-                                .build()
-                );
+                Trajectory leftTraj = drive.trajectoryBuilder(pose)
+                        .strafeLeft(40) // changed from 37.5 to 40
+                        .build();
+                Trajectory backTraj = drive.trajectoryBuilder(leftTraj.end())
+                        .back(1)
+                        .build();
+                drive.followTrajectory(leftTraj);
+                drive.followTrajectory(backTraj);
+
                 break;
             case 16: // go to right
                 Trajectory rightTraj = drive.trajectoryBuilder(pose)
