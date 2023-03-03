@@ -35,6 +35,10 @@ public class RobotCentricTeleOp extends OpMode {
     private ClawSubsystem claw;
     Servo armServo1, armServo2, armServo3, clawServo;
 
+    // Drivers said they want elbow extension to be continuious, so we have to make and arm
+    // angle variable.
+    double armAngle = 0;
+
     @Override
     public void init() {
         fL = hardwareMap.get(DcMotor.class,"leftFront");
@@ -101,21 +105,19 @@ public class RobotCentricTeleOp extends OpMode {
         }
         else {
             if (arm.getHeight() < 30) {
-                armMotor.setPower(0.01);
-                armMotor2.setPower(0.01);
+                armMotor.setPower(0.005);
+                armMotor2.setPower(0.005);
             }
         }
-        if (monishController.y){
-            arm.moveServo2(1);
+        if (monishController.y && armAngle <= 0.49){
+            armAngle += 0.01;
+            servo2Pos = armAngle;
+            servo3Pos = armAngle / 5;
         }
-        if (monishController.x){
-            arm.moveServo2(0);
-        }
-        if (monishController.a){
-            arm.moveServo3(1);
-        }
-        if (monishController.b){
-            arm.moveServo3(0);
+        if (monishController.x && armAngle >= 0.01) {
+            armAngle -= 0.01;
+            servo2Pos = armAngle;
+            servo3Pos = armAngle / 5;
         }
         if (monishController.left_stick_x > 0.3) {
             if (arm.getServo1Pos() < 0.99) {

@@ -16,7 +16,7 @@ public class ClawSubsystem {
         clawServo.setPosition(0);
     }
     public void closeFully() {
-        clawServo.setPosition(0.4);
+        clawServo.setPosition(1); //0 is minimum position and 1 is max position
     }
 
     public void openFully() {

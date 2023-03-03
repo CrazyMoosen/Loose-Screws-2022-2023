@@ -5,16 +5,13 @@ import com.acmerobotics.roadrunner.geometry.Vector2d;
 import com.acmerobotics.roadrunner.trajectory.Trajectory;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
-import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
-import org.firstinspires.ftc.team22012.drive.DriveConstants;
 import org.firstinspires.ftc.team22012.drive.SampleMecanumDrive;
 import org.firstinspires.ftc.team22012.trajectorysequence.TrajectorySequence;
-import org.firstinspires.ftc.team22012.universal.drive.MecanumDrive;
 import org.firstinspires.ftc.team22012.universal.subsystems.ArmSubsystem;
 import org.firstinspires.ftc.team22012.universal.subsystems.ClawSubsystem;
 import org.firstinspires.ftc.team22012.vision.AprilTagDetectionPipeline;
@@ -26,8 +23,8 @@ import org.openftc.easyopencv.OpenCvWebcam;
 
 import java.util.ArrayList;
 
-@Autonomous(name = "AprilTagAutonomousMode")
-public class AprilTagDetectionAuto extends LinearOpMode
+@Autonomous(name = "LeftSideAprilTagAutonomousMode")
+public class LeftSideAprilTagDetectionAuto extends LinearOpMode
 {
     OpenCvWebcam webcam;
     AprilTagDetectionPipeline aprilTagDetectionPipeline;
@@ -48,6 +45,7 @@ public class AprilTagDetectionAuto extends LinearOpMode
     int LEFT = 2;
     int MIDDLE = 6;
     int RIGHT = 16;
+    ElapsedTime time = new ElapsedTime();
 
     AprilTagDetection tagOfInterest = null;
     DcMotor fL, fR, bL, bR, armMotor, armMotor2;
@@ -83,11 +81,6 @@ public class AprilTagDetectionAuto extends LinearOpMode
         armServo2.resetDeviceConfigurationForOpMode();
         armServo3.resetDeviceConfigurationForOpMode();
         ArmSubsystem arm = new ArmSubsystem(armMotor, armMotor2, armServo1, armServo2, armServo3);
-        claw.closeFully();
-        arm.moveServo3(0);
-        arm.moveServo1(0);
-        arm.moveServo2(0);
-        arm.runToPos(2);
 
         SampleMecanumDrive drive = new SampleMecanumDrive(hardwareMap);
         drive.setPoseEstimate(new Pose2d(-72, 34, Math.toRadians(0)));
@@ -196,17 +189,70 @@ public class AprilTagDetectionAuto extends LinearOpMode
 
         /* Actually do something useful */
         if(tagOfInterest != null) {
+            arm.runToPos(1);
             claw.closeFully();
-            Pose2d highJuncPos = gotoHighJunction(drive);
+            time.reset();
+            while (time.milliseconds() < 1000){
+            }
+            arm.moveServo3(0);
+            arm.moveServo1(0);
+            arm.moveServo2(0);
+            time.reset();
+            while (time.milliseconds() < 1500){
+            }
+
+            arm.runToPos(7);
+
+            //TODO: replace with scoreOnHighJunction call
+            currentPos = gotoHighJunction(drive); //up here robot is at (-22, 20.5)
+            //arm.resetMotorMode();
+            arm.runToPos(34);
+            telemetry.addLine("wsg");
+            telemetry.update();
+            currentPos = forward(drive, 3, currentPos); //up here robot is at (-19, 20.5)
+            claw.openFully();
+
+            currentPos = backward(drive, 3, currentPos); //up here robot is at (-22, 20.5)
+            arm.stop();
+
+            time.reset();
+            while (time.milliseconds() < 1500){
+            }
+            /**
+            //TODO: replace with scoreConeFromStack call
+            //GETTING CONES FROM CONE STACK
+            currentPos = strafeLeft(drive, 24, currentPos);
+
+            turn(drive, 90); //up here robot is at (0)
+
+            currentPos = forward(drive, 7, currentPos); //up here robot is at (-19,)
+
             arm.resetMotorMode();
-            while (arm.getHeight() < 34){
+            arm.runToPos(9);
+
+            currentPos = forward(drive, 2, currentPos);
+            claw.closeFully(); // At this point it should have the highest cone in the cone stack
+
+            arm.resetMotorMode();
+            while (arm.getHeight() < 34){  //at this point the arm should move up to avoid knocking over the cone stack
                 arm.moveUp();
             }
-            armMotor.setPower(0.01);
-            armMotor2.setPower(0.01);
-            Pose2d a = forward(drive, 3, highJuncPos);
-            claw.openFully();
+            armMotor.setPower(0.005);
+            armMotor2.setPower(0.005); //stall arm
+
+            currentPos = backward(drive, 9, currentPos);
+
+            turn(drive, -90);
+
+            currentPos = strafeRight(drive, 24, currentPos);
+            currentPos = forward(drive, 3, currentPos);
+            claw.openFully(); // At this point it should have dropped the cone onto the high junction
+            currentPos = backward(drive, 3, currentPos); // At this point it should be 3 inches back and have scored the cone
             arm.stop();
+
+            time.reset();
+            while (time.milliseconds() < 1000){
+            }
 
             //park from highJunctionPosition
             park(drive, tagOfInterest, a);
@@ -227,11 +273,14 @@ public class AprilTagDetectionAuto extends LinearOpMode
                 drive.followTrajectory(straightTraj);
                 break;
             case 6: // go to left
-                drive.followTrajectory(
-                        drive.trajectoryBuilder(pose)
-                                .strafeLeft(37.5)
-                                .build()
-                );
+                Trajectory leftTraj = drive.trajectoryBuilder(pose)
+                        .strafeLeft(40)
+                        .build();
+                Trajectory backTraj = drive.trajectoryBuilder(leftTraj.end())
+                        .back(1)
+                        .build();
+                drive.followTrajectory(leftTraj);
+                drive.followTrajectory(backTraj);
                 break;
             case 16: // go to right
                 Trajectory rightTraj = drive.trajectoryBuilder(pose)
@@ -252,7 +301,7 @@ public class AprilTagDetectionAuto extends LinearOpMode
                 .build();
         drive.followTrajectory(strafeRightTraj);
 
-        return strafeRightTraj.end();
+        return strafeRightTraj.end(); // End position should be (-22, 20.5)
     }
 
     public Pose2d forward(SampleMecanumDrive drive, double inches, Pose2d pos) {
