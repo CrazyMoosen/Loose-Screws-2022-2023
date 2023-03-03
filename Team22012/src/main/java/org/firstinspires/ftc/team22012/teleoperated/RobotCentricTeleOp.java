@@ -78,7 +78,7 @@ public class RobotCentricTeleOp extends OpMode {
         arm.moveServo3(0);
         arm.moveServo1(0);
         arm.moveServo2(0);
-        arm.runToPos(0.1);
+        arm.runToPos(-10.9);
     }
 
     @Override
@@ -118,22 +118,21 @@ public class RobotCentricTeleOp extends OpMode {
             servo2Pos = armAngle;
             servo3Pos = armAngle / 5;
         }
-        if (monishController.x && armAngle >= 0.01) {
+        else if (monishController.x && armAngle >= 0.01) {
             armAngle -= 0.01;
             servo2Pos = armAngle;
             servo3Pos = armAngle / 5;
         }
-        if (monishController.left_stick_x > 0.3) {
-            if (arm.getServo1Pos() < 0.95) {
-//                arm.moveServo1(arm.getServo1Pos() + 0.05);
-                servo1Pos += 0.05;
-            }
+        else{
+            servo2Pos = armAngle;
+            servo3Pos = armAngle / 5;
         }
-        if (monishController.left_stick_x < -0.3) {
-            if (arm.getServo1Pos() > 0.05) {
-                servo1Pos -= 0.05;
-//                arm.moveServo1(arm.getServo1Pos() - 0.05);
-            }
+
+        if (monishController.dpad_up) {
+            servo1Pos = 1;
+        }
+        if (monishController.dpad_down) {
+            servo1Pos = 0;
         }
 
         arm.moveServo1(servo1Pos);
@@ -150,6 +149,7 @@ public class RobotCentricTeleOp extends OpMode {
         telemetry.addData("Arm Servo1 Position", armServo1.getPosition());
         telemetry.addData("Arm Servo2 Position", armServo2.getPosition());
         telemetry.addData("Arm Servo3 Position", armServo3.getPosition());
+        telemetry.addData("Expected Servo1 Position", servo1Pos);
 
         telemetry.update();
     }

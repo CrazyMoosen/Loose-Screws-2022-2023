@@ -55,7 +55,6 @@ public class ArmSubsystem {
     public void runToPosSlowly(double inches, double speed) {
         double position = inches * TICKS_PER_INCH;
         this.linearSlideMotor.setTargetPosition((int) position);
-//        this.linearSlideMotor2.setTargetPosition((int) position);
         if (position > this.linearSlideMotor.getCurrentPosition() && position > this.linearSlideMotor2.getCurrentPosition()) {
             this.moveUpSlow(speed);
         }
@@ -63,12 +62,6 @@ public class ArmSubsystem {
             this.moveUpSlow(-speed);
         }
         this.linearSlideMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-//        this.linearSlideMotor2.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-    }
-
-    public void resetMotorMode() {
-        linearSlideMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        this.linearSlideMotor2.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
     }
 
     public void moveUp(){

@@ -192,9 +192,6 @@ public class LeftSideAprilTagDetectionAuto extends LinearOpMode
         if(tagOfInterest != null) {
             arm.runToPos(1);
             claw.closeFully();
-            time.reset();
-            while (time.milliseconds() < 1000){
-            }
             arm.moveServo3(0);
             arm.moveServo1(0);
             arm.moveServo2(0);
@@ -204,12 +201,19 @@ public class LeftSideAprilTagDetectionAuto extends LinearOpMode
 
             arm.runToPos(7);
 
+            time.reset();
+            while (time.milliseconds() < 1000){
+            }
+
             //TODO: replace with scoreOnHighJunction call
             currentPos = gotoHighJunction(drive); //up here robot is at (-22, 20.5)
-            //arm.resetMotorMode();
+            arm.moveServo3(0);
+            arm.moveServo1(0);
+            arm.moveServo2(0);
+
             arm.runToPos(34);
-            telemetry.addLine("wsg");
-            telemetry.update();
+
+            while (arm.getHeight() < 34) {}
             currentPos = forward(drive, 3, currentPos); //up here robot is at (-19, 20.5)
             claw.openFully();
 
@@ -260,6 +264,13 @@ public class LeftSideAprilTagDetectionAuto extends LinearOpMode
             // behing the scoring position.
              **/
             park(drive, tagOfInterest, currentPos);
+            arm.moveServo3(0);
+            arm.moveServo1(0);
+            arm.moveServo2(0);
+            while (arm.getHeight() > 1) {
+                arm.moveDown();
+            }
+            arm.stop();// go to default position after parking
         }
 
 
@@ -342,56 +353,6 @@ public class LeftSideAprilTagDetectionAuto extends LinearOpMode
         drive.followTrajectory(strafeLeftTraj);
 
         return strafeLeftTraj.end();
-    }
-
-    public Pose2d scoreOnHighJunction(SampleMecanumDrive robot, ArmSubsystem arm, ClawSubsystem claw) {
-        Pose2d pos = gotoHighJunction(robot); //up here robot is at (-22, 20.5)
-        arm.resetMotorMode();
-        while (arm.getHeight() < 34){
-            arm.moveUp();
-        }
-        arm.getMotor1().setPower(0.005);
-        arm.getMotor2().setPower(0.005);
-        pos = forward(drive, 3, pos); //up here robot is at (-19, 20.5)
-        claw.openFully();
-
-        pos = backward(drive, 3, pos); //up here robot is at (-22, 20.5)
-        arm.stop();
-
-        return pos;
-    }
-
-    public Pose2d scoreConeFromStack(Pose2d highJuncPos, SampleMecanumDrive drive, ArmSubsystem arm, ClawSubsystem claw) {
-        Pose2d pos = strafeLeft(drive, 24, highJuncPos);
-
-        turn(drive, 90); //up here robot is at (0)
-
-        pos = forward(drive, 7, pos); //up here robot is at (-19,)
-
-        arm.resetMotorMode();
-        arm.runToPos(9);
-
-        pos = forward(drive, 2, pos);
-        claw.closeFully(); // At this point it should have the highest cone in the cone stack
-
-        arm.resetMotorMode();
-        while (arm.getHeight() < 34){  //at this point the arm should move up to avoid knocking over the cone stack
-            arm.moveUp();
-        }
-        armMotor.setPower(0.005);
-        armMotor2.setPower(0.005); //stall arm
-
-        pos = backward(drive, 9, pos);
-
-        turn(drive, -90);
-
-        pos = strafeRight(drive, 24, pos);
-        pos = forward(drive, 3, pos);
-        claw.openFully(); // At this point it should have dropped the cone onto the high junction
-        pos = backward(drive, 3, pos); // At this point it should be 3 inches back and have scored the cone
-        arm.stop();
-
-        return pos;
     }
 
     void tagToTelemetry(AprilTagDetection detection)
