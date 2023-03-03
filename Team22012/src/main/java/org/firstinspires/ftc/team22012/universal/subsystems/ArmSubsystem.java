@@ -137,4 +137,11 @@ public class ArmSubsystem {
         armServo3.setPosition(90-armServo2.getPosition());
         }
     }
+
+    public DcMotor getMotor1() {
+        return this.linearSlideMotor;
+    }
+    public DcMotor getMotor2() {
+        return this.linearSlideMotor2;
+    }
 }

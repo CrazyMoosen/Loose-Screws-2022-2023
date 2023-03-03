@@ -25,6 +25,10 @@ public class RobotCentricTeleOp extends OpMode {
     private Gamepad shreyController;
     private Gamepad monishController;
 
+    double servo1Pos = 0;
+    double servo2Pos = 0;
+    double servo3Pos = 0;
+
     private MecanumDrive mecanumDrive;
     /**
      * This is for the arm and the claw management, once we build the claw
@@ -120,15 +124,21 @@ public class RobotCentricTeleOp extends OpMode {
             servo3Pos = armAngle / 5;
         }
         if (monishController.left_stick_x > 0.3) {
-            if (arm.getServo1Pos() < 0.99) {
-                arm.moveServo1(arm.getServo1Pos() + 0.01);
+            if (arm.getServo1Pos() < 0.95) {
+//                arm.moveServo1(arm.getServo1Pos() + 0.05);
+                servo1Pos += 0.05;
             }
         }
         if (monishController.left_stick_x < -0.3) {
-            if (arm.getServo1Pos() > 0.01) {
-                arm.moveServo1(arm.getServo1Pos() - 0.01);
+            if (arm.getServo1Pos() > 0.05) {
+                servo1Pos -= 0.05;
+//                arm.moveServo1(arm.getServo1Pos() - 0.05);
             }
         }
+
+        arm.moveServo1(servo1Pos);
+        arm.moveServo2(servo2Pos);
+        arm.moveServo3(servo3Pos);
 
         // Stabillization code
 
