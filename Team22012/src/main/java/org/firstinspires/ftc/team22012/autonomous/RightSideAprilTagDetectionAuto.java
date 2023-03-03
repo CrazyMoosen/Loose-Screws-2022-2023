@@ -244,9 +244,19 @@ public class RightSideAprilTagDetectionAuto extends LinearOpMode {
                 break;
             case 6: // go to left
                 Trajectory leftTraj = drive.trajectoryBuilder(pose)
+<<<<<<<< HEAD:Team22012/src/main/java/org/firstinspires/ftc/team22012/autonomous/RightSideAprilTagDetectionAuto.java
                         .strafeLeft(13.5)
                         .build();
                 drive.followTrajectory(leftTraj);
+========
+                        .strafeLeft(40) // changed from 37.5 to 40
+                        .build();
+                Trajectory backTraj = drive.trajectoryBuilder(leftTraj.end())
+                        .back(1)
+                        .build();
+                drive.followTrajectory(leftTraj);
+                drive.followTrajectory(backTraj);
+>>>>>>>> origin/stateChamps:Team22012/src/main/java/org/firstinspires/ftc/team22012/autonomous/AprilTagDetectionAuto.java
 
                 break;
             case 16: // go to right
