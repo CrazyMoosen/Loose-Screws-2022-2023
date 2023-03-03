@@ -83,11 +83,11 @@ public class AprilTagDetectionAuto extends LinearOpMode
         armServo2.resetDeviceConfigurationForOpMode();
         armServo3.resetDeviceConfigurationForOpMode();
         ArmSubsystem arm = new ArmSubsystem(armMotor, armMotor2, armServo1, armServo2, armServo3);
-        arm.runToPos(2);
         claw.closeFully();
         arm.moveServo3(0);
         arm.moveServo1(0);
         arm.moveServo2(0);
+        arm.runToPos(2);
 
         SampleMecanumDrive drive = new SampleMecanumDrive(hardwareMap);
         drive.setPoseEstimate(new Pose2d(-72, 34, Math.toRadians(0)));
@@ -227,10 +227,11 @@ public class AprilTagDetectionAuto extends LinearOpMode
                 drive.followTrajectory(straightTraj);
                 break;
             case 6: // go to left
-                Trajectory leftTraj = drive.trajectoryBuilder(pose)
-                        .strafeLeft(37.5)
-                        .build();
-                drive.followTrajectory(leftTraj);
+                drive.followTrajectory(
+                        drive.trajectoryBuilder(pose)
+                                .strafeLeft(37.5)
+                                .build()
+                );
                 break;
             case 16: // go to right
                 Trajectory rightTraj = drive.trajectoryBuilder(pose)
@@ -262,11 +263,21 @@ public class AprilTagDetectionAuto extends LinearOpMode
         return forwardTraj.end();
     }
 
-    public void strafeRight(SampleMecanumDrive drive, double inches) {
-        Trajectory strafeRightTraj = drive.trajectoryBuilder(new Pose2d())
+    public Pose2d strafeRight(SampleMecanumDrive drive, double inches, Pose2d startPos) {
+        Trajectory strafeRightTraj = drive.trajectoryBuilder(startPos)
                 .strafeRight(inches)
                 .build();
         drive.followTrajectory(strafeRightTraj);
+
+        return strafeRightTraj.end();
+    }
+    public Pose2d strafeLeft(SampleMecanumDrive drive, double inches, Pose2d startPos) {
+        Trajectory strafeLeftTraj = drive.trajectoryBuilder(startPos)
+                .strafeLeft(inches)
+                .build();
+        drive.followTrajectory(strafeLeftTraj);
+
+        return strafeLeftTraj.end();
     }
 
     void tagToTelemetry(AprilTagDetection detection)
