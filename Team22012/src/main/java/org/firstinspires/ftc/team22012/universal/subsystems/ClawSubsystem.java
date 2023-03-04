@@ -13,10 +13,10 @@ public class ClawSubsystem {
         this.clawServo = clawServo;
         clawServo.setDirection(Servo.Direction.FORWARD);
         clawServo.getController().pwmEnable();
-        clawServo.setPosition(0);
+        clawServo.setPosition(0.3);
     }
     public void closeFully() {
-        clawServo.setPosition(1); //0 is minimum position and 1 is max position
+        clawServo.setPosition(0.7); //0 is minimum position and 1 is max position
     }
 
     public void openFully() {

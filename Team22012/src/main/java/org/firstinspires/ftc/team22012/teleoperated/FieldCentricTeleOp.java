@@ -1,18 +1,21 @@
 package org.firstinspires.ftc.team22012.teleoperated;
 
 import com.qualcomm.hardware.bosch.BHI260IMU;
+import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.Gamepad;
+import com.qualcomm.robotcore.hardware.IMU;
 import com.qualcomm.robotcore.hardware.Servo;
 
+import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.team22012.universal.drive.MecanumDrive;
 import org.firstinspires.ftc.team22012.universal.subsystems.ArmSubsystem;
 import org.firstinspires.ftc.team22012.universal.subsystems.ClawSubsystem;
 
-@TeleOp(name="RobotCentric", group = "Drive Modes")
-public class RobotCentricTeleOp extends OpMode {
+@TeleOp(name="Field Centric", group = "Drive Modes")
+public class FieldCentricTeleOp extends OpMode {
 
     public static final double kDefaultRangeMin = -1.0;
     public static final double kDefaultRangeMax = 1.0;
@@ -43,6 +46,7 @@ public class RobotCentricTeleOp extends OpMode {
     // Drivers said they want elbow extension to be continuious, so we have to make and arm
     // angle variable.
     double armAngle = 0;
+    BHI260IMU imu;
 
     @Override
     public void init() {
@@ -83,6 +87,16 @@ public class RobotCentricTeleOp extends OpMode {
         arm.moveServo1(0);
         arm.moveServo2(0);
         arm.runToPos(-10.9);
+
+        imu = hardwareMap.get(BHI260IMU.class, "imu");
+        IMU.Parameters parameters = new IMU.Parameters(
+                new RevHubOrientationOnRobot(
+                        RevHubOrientationOnRobot.LogoFacingDirection.RIGHT, //Orthogonal #9 in the docs
+                        RevHubOrientationOnRobot.UsbFacingDirection.UP));
+
+        //this here set it to radians before, however in mecanumDrive.driveFieldCentric(), it converts it to radians, so we will use degrees
+        imu.initialize(parameters);
+        imu.resetYaw();
     }
 
     @Override
@@ -92,12 +106,15 @@ public class RobotCentricTeleOp extends OpMode {
         double speedMultiplier = 1.0;
         //if shrey presses the B button he can boost the speed of the drivetrain
         if (shreyController.b) {
-            speedMultiplier = 1.08;
+            speedMultiplier = 1.5;
         }
-        mecanumDrive.driveRobotCentric(
-                -shreyController.left_stick_x*0.9*speedMultiplier,
-                shreyController.left_stick_y*0.9*speedMultiplier,
-                -shreyController.right_stick_x*0.9*speedMultiplier
+
+        double heading = imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.DEGREES);
+        mecanumDrive.driveFieldCentric(
+                -shreyController.left_stick_x*0.6*speedMultiplier,
+                shreyController.left_stick_y*0.6*speedMultiplier,
+                -shreyController.right_stick_x*0.6*speedMultiplier,
+                heading
         );
         if (monishController.right_bumper) {
             claw.closeFully();
@@ -118,29 +135,25 @@ public class RobotCentricTeleOp extends OpMode {
                 arm.stop();
             }
         }
-        if (monishController.y && armAngle <= 0.49){
+        if (monishController.y && armAngle <= 0.45){
             armAngle += 0.01;
             servo2Pos = armAngle;
-            servo3Pos = armAngle / 5;
+            servo3Pos = armAngle;
         }
-        else if (monishController.x && armAngle >= 0.01) {
+        if (monishController.x && armAngle >= 0.01) {
             armAngle -= 0.01;
             servo2Pos = armAngle;
-            servo3Pos = armAngle / 5;
-        }
-        else{
-            servo2Pos = armAngle;
-            servo3Pos = armAngle / 5;
+            servo3Pos = armAngle;
         }
 
-        if (monishController.dpad_up) {
-            servo1Pos = 0.75;
+        if (monishController.dpad_up && arm.getHeight() > 5) {
+            servo1Pos = 0.7;
         }
-        if (monishController.dpad_down) {
+        if (monishController.dpad_down && arm.getHeight() > 5) {
             servo1Pos = 0;
         }
-        if (monishController.dpad_left) {
-            servo1Pos = 0.5;
+        if (monishController.dpad_left && arm.getHeight() > 5) {
+            servo1Pos = 0.35;
         }
 
         arm.moveServo1(servo1Pos);
@@ -158,6 +171,7 @@ public class RobotCentricTeleOp extends OpMode {
         telemetry.addData("Arm Servo2 Position", armServo2.getPosition());
         telemetry.addData("Arm Servo3 Position", armServo3.getPosition());
         telemetry.addData("Expected Servo1 Position", servo1Pos);
+        telemetry.addData("Robot Heading", heading);
 
         telemetry.update();
     }

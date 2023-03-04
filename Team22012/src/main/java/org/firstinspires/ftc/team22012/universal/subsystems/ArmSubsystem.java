@@ -9,12 +9,15 @@ public class ArmSubsystem {
     private final Servo armServo1, armServo2, armServo3;
     private final double TICKS_PER_INCH = 3163d / 38.4d;
 
+    double baseEncoderValue;
+
     //max is 3163 use ~3100; min is 0
     public ArmSubsystem(DcMotor linearSlideMotor,DcMotor linearSlideMotor2, Servo armServo1, Servo armServo2, Servo armServo3) {
         this.linearSlideMotor = linearSlideMotor;
         this.linearSlideMotor.setDirection(DcMotorSimple.Direction.FORWARD);
         this.linearSlideMotor.setTargetPosition(0);
         this.linearSlideMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        this.baseEncoderValue = linearSlideMotor.getCurrentPosition();
 
         this.linearSlideMotor2 = linearSlideMotor2;
         this.linearSlideMotor2.setDirection(DcMotorSimple.Direction.REVERSE);
@@ -39,7 +42,7 @@ public class ArmSubsystem {
     }
 
     public void runToPos(double inches) {
-        double position = inches * TICKS_PER_INCH;
+        double position = inches * TICKS_PER_INCH + baseEncoderValue;
         this.linearSlideMotor.setTargetPosition((int) position);
 //        this.linearSlideMotor2.setTargetPosition((int) position);
         if (position > this.linearSlideMotor.getCurrentPosition() && position > this.linearSlideMotor2.getCurrentPosition()) {
@@ -91,7 +94,7 @@ public class ArmSubsystem {
         runToPos(32);
     }
     public double getHeight() {
-        return linearSlideMotor.getCurrentPosition() / TICKS_PER_INCH;
+        return (linearSlideMotor.getCurrentPosition() - baseEncoderValue) / TICKS_PER_INCH;
     }
     public void rotateArm(double angle) {
         if (angle*5 + armServo1.getPosition()<=180.0 && angle*5 + armServo1.getPosition()>=0.0) {

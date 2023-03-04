@@ -197,7 +197,7 @@ public class RightSideAprilTagDetectionAuto extends LinearOpMode {
                 }
             }
             time.reset();
-            while (time.milliseconds() < 700) {}
+            while (time.milliseconds() < 900) {}
 
             arm.moveServo3(0);
             arm.moveServo1(0);
@@ -205,6 +205,7 @@ public class RightSideAprilTagDetectionAuto extends LinearOpMode {
 
             arm.runToPos(-4 + 11);
 
+            //TODO: replace with scoreOnHighJunction call
             // This part of the code goes to the high junction moves to the tope of the cone stack, and drops the cone
             currentPos = gotoHighJunction(drive); //up here robot is at (-22, 20.5)
             claw.closeFully();
@@ -223,49 +224,13 @@ public class RightSideAprilTagDetectionAuto extends LinearOpMode {
 
             currentPos = backward(drive, 3, currentPos); //up here robot is at (-22, 20.5)
             arm.stop();
-            // finished withing scoring preloaded
+            // Finished with scoring preloaded
 
-            time.reset();
-            while (time.milliseconds() < 700){
+            //TODO: replace with scoreConeFromStack call
+            //GETTING CONES FROM CONE STACK
+            for (int i = 0; i < 5; i++) {
+                currentPos = scoreConeFromHighJunction(currentPos, drive, armServo1, arm, clawServo, claw, 9 - 1.75 * i);
             }
-
-            // GETTING CONES FROM CONE STACK
-            currentPos = strafeRight(drive, 24, currentPos);
-            turn(drive, -90); //up here robot is at (0)
-            while (armServo1.getPosition() != 0) {
-                armServo1.setPosition(0);
-            }
-            currentPos = forward(drive, 7, drive.getPoseEstimate()); //up here robot is at (-19,)
-            arm.moveServo1(0);
-            time.reset();
-            while (time.milliseconds() < 200) {}
-            arm.runToPos(-2 + 11);
-            while (arm.getHeight() > -2 + 11) {}
-
-            currentPos = forward(drive, 8, currentPos);
-            if (clawServo.getPosition() != 1) {
-                while (clawServo.getPosition() != 1) {
-                    clawServo.setPosition(1.0);
-                }
-            } // Gets the cone from the cone stack
-
-            time.reset();
-            while (time.milliseconds() < 600) {};
-
-            arm.runToPos(26 + 11);
-            while (arm.getHeight() < 25.8 + 11) {}
-
-            currentPos = backward(drive, 15, currentPos);
-
-            turn(drive, 90);
-
-            currentPos = strafeLeft(drive, 23, drive.getPoseEstimate());
-            while (armServo1.getPosition() != 0) {
-                armServo1.setPosition(0);
-            }
-            currentPos = forward(drive, 3, currentPos);
-            claw.openFully(); // At this point it should have dropped the cone onto the high junction
-            currentPos = backward(drive, 3, currentPos); // At this point it should be 3 inches back and have scored the cone
 
 
             //park from highJunctionPosition
@@ -357,6 +322,45 @@ public class RightSideAprilTagDetectionAuto extends LinearOpMode {
         drive.followTrajectory(strafeLeftTraj);
 
         return strafeLeftTraj.end();
+    }
+
+    public Pose2d scoreConeFromHighJunction(Pose2d highJuncPos, SampleMecanumDrive drive, Servo armServo1, ArmSubsystem arm, Servo clawServo, ClawSubsystem claw, double maxConeStackPos) {
+        arm.moveServo1(0.3);
+        Pose2d currentPos = strafeRight(drive, 42, highJuncPos);
+        drive.turn(180);
+
+        arm.runToPos(maxConeStackPos);
+        while (arm.getHeight() > maxConeStackPos) {}
+//
+        if (clawServo.getPosition() != 1) {
+            while (clawServo.getPosition() != 1) {
+                clawServo.setPosition(1.0);
+            }
+        }
+
+        time.reset();
+        while (time.milliseconds() < 800) {};
+
+        arm.runToPos(26 + 11);
+        while (arm.getHeight() < maxConeStackPos + 1.5) {}
+        arm.moveUp();
+
+        drive.turn(180);
+
+        currentPos = strafeLeft(drive, 41, drive.getPoseEstimate());
+        while (armServo1.getPosition() != 0) {
+            armServo1.setPosition(0);
+        }
+
+        time.reset();
+        while(time.milliseconds() < 400) {}
+
+        currentPos = forward(drive, 3, currentPos);
+        time.reset();
+        while(time.milliseconds() < 400) {}
+        claw.openFully(); // At this point it should have dropped the cone onto the high junction
+        currentPos = backward(drive, 3, currentPos); // At this point it should be 3 inches back and have scored the cone
+        return currentPos;
     }
 
     void tagToTelemetry(AprilTagDetection detection)
