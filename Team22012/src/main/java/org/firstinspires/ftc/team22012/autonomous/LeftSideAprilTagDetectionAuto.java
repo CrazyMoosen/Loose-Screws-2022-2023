@@ -207,6 +207,7 @@ public class LeftSideAprilTagDetectionAuto extends LinearOpMode
             arm.runToPos(-4 + 11);
 
             //TODO: replace with scoreOnHighJunction call
+            // This part of the code goes to the high junction moves to the tope of the cone stack, and drops the cone
             currentPos = gotoHighJunction(drive); //up here robot is at (-22, 20.5)
             claw.closeFully();
             arm.moveServo3(0);

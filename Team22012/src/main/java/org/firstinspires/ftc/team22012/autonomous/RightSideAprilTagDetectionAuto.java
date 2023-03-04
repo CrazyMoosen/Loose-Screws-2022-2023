@@ -189,47 +189,91 @@ public class RightSideAprilTagDetectionAuto extends LinearOpMode {
         /* Actually do something useful */
         Pose2d currentPos;
         if(tagOfInterest != null) {
-            arm.runToPos(1);
-            claw.closeFully();
-            time.reset();
-            while (time.milliseconds() < 1000){
+            // This is the first part of the code, and it garbs the claw and moves the claw up to 7 in
+            arm.runToPos(1); //encoder values got offset by 11
+            if (clawServo.getPosition() != 1) {
+                while (clawServo.getPosition() != 1) {
+                    clawServo.setPosition(1.0);
+                }
             }
-            arm.moveServo3(0);
-            arm.moveServo1(0);
-            arm.moveServo2(0);
             time.reset();
-            while (time.milliseconds() < 1500){
-            }
+            while (time.milliseconds() < 700) {}
 
-            arm.runToPos(7);
-
-            currentPos = gotoHighJunction(drive);
             arm.moveServo3(0);
             arm.moveServo1(0);
             arm.moveServo2(0);
 
+            arm.runToPos(-4 + 11);
+
+            // This part of the code goes to the high junction moves to the tope of the cone stack, and drops the cone
             currentPos = gotoHighJunction(drive); //up here robot is at (-22, 20.5)
+            claw.closeFully();
             arm.moveServo3(0);
             arm.moveServo1(0);
             arm.moveServo2(0);
-            arm.runToPos(34);
 
-            while (arm.getHeight() < 34) {}
+            arm.runToPos(25 + 11);
+
+            while (arm.getHeight() < 24.8 +  11) {}
+            arm.moveServo1(0);
+            claw.closeFully();
             currentPos = forward(drive, 3, currentPos); //up here robot is at (-19, 20.5)
+            arm.moveServo1(0);
             claw.openFully();
 
             currentPos = backward(drive, 3, currentPos); //up here robot is at (-22, 20.5)
             arm.stop();
+            // finished withing scoring preloaded
+
+            time.reset();
+            while (time.milliseconds() < 700){
+            }
+
+            // GETTING CONES FROM CONE STACK
+            currentPos = strafeRight(drive, 24, currentPos);
+            turn(drive, -90); //up here robot is at (0)
+            while (armServo1.getPosition() != 0) {
+                armServo1.setPosition(0);
+            }
+            currentPos = forward(drive, 7, drive.getPoseEstimate()); //up here robot is at (-19,)
+            arm.moveServo1(0);
+            time.reset();
+            while (time.milliseconds() < 200) {}
+            arm.runToPos(-2 + 11);
+            while (arm.getHeight() > -2 + 11) {}
+
+            currentPos = forward(drive, 8, currentPos);
+            if (clawServo.getPosition() != 1) {
+                while (clawServo.getPosition() != 1) {
+                    clawServo.setPosition(1.0);
+                }
+            } // Gets the cone from the cone stack
+
+            time.reset();
+            while (time.milliseconds() < 600) {};
+
+            arm.runToPos(26 + 11);
+            while (arm.getHeight() < 25.8 + 11) {}
+
+            currentPos = backward(drive, 15, currentPos);
+
+            turn(drive, 90);
+
+            currentPos = strafeLeft(drive, 23, drive.getPoseEstimate());
+            while (armServo1.getPosition() != 0) {
+                armServo1.setPosition(0);
+            }
+            currentPos = forward(drive, 3, currentPos);
+            claw.openFully(); // At this point it should have dropped the cone onto the high junction
+            currentPos = backward(drive, 3, currentPos); // At this point it should be 3 inches back and have scored the cone
+
 
             //park from highJunctionPosition
             park(drive, tagOfInterest, currentPos);
             arm.moveServo3(0);
             arm.moveServo1(0);
             arm.moveServo2(0);
-            while (arm.getHeight() > 1) {
-                arm.moveDown();
-            }
-            arm.stop();// go to default position after parking
+            arm.runToPos(0);// go to default position after parking
         }
 
 
@@ -325,5 +369,9 @@ public class RightSideAprilTagDetectionAuto extends LinearOpMode {
         telemetry.addLine(String.format("Rotation Yaw: %.2f degrees", Math.toDegrees(detection.pose.yaw)));
         telemetry.addLine(String.format("Rotation Pitch: %.2f degrees", Math.toDegrees(detection.pose.pitch)));
         telemetry.addLine(String.format("Rotation Roll: %.2f degrees", Math.toDegrees(detection.pose.roll)));
+    }
+
+    public void turn(SampleMecanumDrive drive, double angle) {
+        drive.turn(Math.toRadians(angle));
     }
 }
