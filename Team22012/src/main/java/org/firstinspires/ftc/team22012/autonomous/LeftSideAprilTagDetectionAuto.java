@@ -190,87 +190,85 @@ public class LeftSideAprilTagDetectionAuto extends LinearOpMode
         /* Actually do something useful */
         Pose2d currentPos = new Pose2d();
         if(tagOfInterest != null) {
-            arm.runToPos(1);
+            // This is the first part of the code, and it garbs the claw and moves the claw up to 7 in
+            arm.runToPos(1); //encoder values got offset by 11
+            if (clawServo.getPosition() != 1) {
+                while (clawServo.getPosition() != 1) {
+                    clawServo.setPosition(1.0);
+                }
+            }
+            time.reset();
+            while (time.milliseconds() < 900) {}
+
+            arm.moveServo3(0);
+            arm.moveServo1(0);
+            arm.moveServo2(0);
+
+            arm.runToPos(-4 + 11);
+
+            //TODO: replace with scoreOnHighJunction call
+            currentPos = gotoHighJunction(drive); //up here robot is at (-22, 20.5)
             claw.closeFully();
             arm.moveServo3(0);
             arm.moveServo1(0);
             arm.moveServo2(0);
-            time.reset();
-            while (time.milliseconds() < 1500){
-            }
 
-            arm.runToPos(7);
+            arm.runToPos(25 + 11);
 
-            time.reset();
-            while (time.milliseconds() < 1000){
-            }
-
-            //TODO: replace with scoreOnHighJunction call
-            currentPos = gotoHighJunction(drive); //up here robot is at (-22, 20.5)
-            arm.moveServo3(0);
+            while (arm.getHeight() < 24.8 +  11) {}
             arm.moveServo1(0);
-            arm.moveServo2(0);
-
-            arm.runToPos(34);
-
-            while (arm.getHeight() < 34) {}
+            claw.closeFully();
             currentPos = forward(drive, 3, currentPos); //up here robot is at (-19, 20.5)
+            arm.moveServo1(0);
             claw.openFully();
 
             currentPos = backward(drive, 3, currentPos); //up here robot is at (-22, 20.5)
             arm.stop();
+            // Finished with scoring preloaded
 
-            time.reset();
-            while (time.milliseconds() < 1500){
-            }
-            /**
             //TODO: replace with scoreConeFromStack call
             //GETTING CONES FROM CONE STACK
             currentPos = strafeLeft(drive, 24, currentPos);
-
             turn(drive, 90); //up here robot is at (0)
-
-            currentPos = forward(drive, 7, currentPos); //up here robot is at (-19,)
-
-            arm.resetMotorMode();
-            arm.runToPos(9);
-
-            currentPos = forward(drive, 2, currentPos);
-            claw.closeFully(); // At this point it should have the highest cone in the cone stack
-
-            arm.resetMotorMode();
-            while (arm.getHeight() < 34){  //at this point the arm should move up to avoid knocking over the cone stack
-                arm.moveUp();
+            while (armServo1.getPosition() != 0) {
+                armServo1.setPosition(0);
             }
-            armMotor.setPower(0.005);
-            armMotor2.setPower(0.005); //stall arm
+            currentPos = forward(drive, 7, drive.getPoseEstimate()); //up here robot is at (-19,)
+            arm.moveServo1(0);
+            arm.runToPos(-2 + 11);
+            while (arm.getHeight() > -2 + 11) {}
+//
+            currentPos = forward(drive, 8, currentPos);
+            if (clawServo.getPosition() != 1) {
+                while (clawServo.getPosition() != 1) {
+                    clawServo.setPosition(1.0);
+                }
+            }
 
-            currentPos = backward(drive, 9, currentPos);
+            time.reset();
+            while (time.milliseconds() < 600) {};
+
+            arm.runToPos(26 + 11);
+            while (arm.getHeight() < 25.8 + 11) {}
+
+            currentPos = backward(drive, 15, currentPos);
 
             turn(drive, -90);
 
-            currentPos = strafeRight(drive, 24, currentPos);
+            currentPos = strafeRight(drive, 23, drive.getPoseEstimate());
+            while (armServo1.getPosition() != 0) {
+                armServo1.setPosition(0);
+            }
             currentPos = forward(drive, 3, currentPos);
             claw.openFully(); // At this point it should have dropped the cone onto the high junction
             currentPos = backward(drive, 3, currentPos); // At this point it should be 3 inches back and have scored the cone
-            arm.stop();
 
-            time.reset();
-            while (time.milliseconds() < 1000){
-            }
-
-            //park from highJunctionPosition
-            park(drive, tagOfInterest, currentPos); // Must park from highJunctionPosition, which is 3 in
-            // behing the scoring position.
-             **/
+            // Park from high Junction
             park(drive, tagOfInterest, currentPos);
             arm.moveServo3(0);
             arm.moveServo1(0);
             arm.moveServo2(0);
-            while (arm.getHeight() > 1) {
-                arm.moveDown();
-            }
-            arm.stop();// go to default position after parking
+            arm.runToPos(0);
         }
 
 
@@ -289,7 +287,7 @@ public class LeftSideAprilTagDetectionAuto extends LinearOpMode
                 break;
             case 6: // go to left
                 Trajectory leftTraj = drive.trajectoryBuilder(pose)
-                        .strafeLeft(40)
+                        .strafeLeft(41)
                         .build();
                 Trajectory backTraj = drive.trajectoryBuilder(leftTraj.end())
                         .back(1)

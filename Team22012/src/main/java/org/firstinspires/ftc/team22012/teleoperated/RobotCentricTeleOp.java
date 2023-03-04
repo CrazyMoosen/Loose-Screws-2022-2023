@@ -63,6 +63,9 @@ public class RobotCentricTeleOp extends OpMode {
         armMotor = hardwareMap.get(DcMotor.class, "linearSlideMotor1");
         armMotor2 = hardwareMap.get(DcMotor.class, "linearSlideMotor2");
 
+        armMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        armMotor2.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+
         armServo1 = hardwareMap.get(Servo.class, "armServo1");
         armServo2 = hardwareMap.get(Servo.class, "armServo2");
         armServo3 = hardwareMap.get(Servo.class, "armServo3");
@@ -109,8 +112,9 @@ public class RobotCentricTeleOp extends OpMode {
         }
         else {
             if (arm.getHeight() < 30) {
-                armMotor.setPower(0.005);
-                armMotor2.setPower(0.005);
+//                armMotor.setPower(0.005);
+//                armMotor2.setPower(0.005);
+                arm.stop();
             }
         }
         if (monishController.y && armAngle <= 0.49){
@@ -129,7 +133,7 @@ public class RobotCentricTeleOp extends OpMode {
         }
 
         if (monishController.dpad_up) {
-            servo1Pos = 1;
+            servo1Pos = 0.8;
         }
         if (monishController.dpad_down) {
             servo1Pos = 0;
